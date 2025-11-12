@@ -1,0 +1,172 @@
+openapi: 3.0.0
+info:
+  title: ValidPEP Validation API
+  version: 1.0.0
+  description: API for validating PEPPOL BIS Billing invoices.
+
+servers:
+  - url: /api
+    description: Current API server
+
+paths:
+  /validate:
+    post:
+      summary: Validate a PEPPOL BIS Billing invoice
+      description: Submits an XML invoice for validation against PEPPOL BIS Billing 3.0.19 rules.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidateRequest'
+      responses:
+        '200':
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidateResponse'
+        '400':
+          description: Invalid request payload or file format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ValidateRequest:
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          type: string
+          description: Base64 encoded XML content of the invoice.
+          format: byte
+        format:
+          type: string
+          description: Detected or specified invoice format (UBL or CII).
+          enum: [ubl, cii, auto]
+          default: auto
+        country:
+          type: string
+          description: Country code for country-specific validation rules (e.g., NO, SE, DK, NL, DE).
+          enum: [NO, SE, DK, NL, DE, auto]
+          default: auto
+        options:
+          type: object
+          properties:
+            includeWarnings:
+              type: boolean
+              description: Whether to include warnings in the validation report.
+              default: true
+            includeXPath:
+              type: boolean
+              description: Whether to include XPath for issues in the validation report.
+              default: true
+          description: Optional validation settings.
+
+    ValidateResponse:
+      type: object
+      required:
+        - valid
+        - format
+        - version
+        - timestamp
+        - errors
+        - warnings
+        - statistics
+      properties:
+        valid:
+          type: boolean
+          description: True if the invoice is valid, false otherwise.
+        format:
+          type: string
+          description: The detected format of the invoice.
+          enum: [ubl, cii]
+        version:
+          type: string
+          description: The PEPPOL BIS Billing specification version used for validation.
+        country:
+          type: string
+          description: The country code used for country-specific validation.
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of when the validation occurred.
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+          description: List of validation errors.
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+          description: List of validation warnings.
+        statistics:
+          type: object
+          properties:
+            totalLines:
+              type: integer
+              description: Total lines in the validated XML file.
+            errorCount:
+              type: integer
+              description: Number of errors found.
+            warningCount:
+              type: integer
+              description: Number of warnings found.
+          required:
+            - totalLines
+            - errorCount
+            - warningCount
+          description: Summary statistics of the validation.
+
+    Issue:
+      type: object
+      required:
+        - severity
+        - message
+      properties:
+        severity:
+          type: string
+          enum: [error, warning, info]
+          description: Severity level of the issue.
+        code:
+          type: string
+          description: Specific code identifying the validation rule that triggered the issue.
+        message:
+          type: string
+          description: Plain-language explanation of the issue.
+        xpath:
+          type: string
+          description: XML Path (XPath) to the problematic element.
+        lineNumber:
+          type: integer
+          description: Line number in the XML where the issue was found.
+        suggestion:
+          type: string
+          description: Suggested fix for the issue.
+        specLink:
+          type: string
+          format: url
+          description: Link to the relevant PEPPOL specification section.
+
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: A human-readable error message.
+        details:
+          type: string
+          description: More technical details about the error.
