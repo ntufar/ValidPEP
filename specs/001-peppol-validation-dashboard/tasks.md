@@ -197,15 +197,20 @@
 
 **Purpose**: Address overall quality, performance, security, and user experience improvements across the application.
 
-- [ ] T051 [P] Implement responsive design adjustments for various screen sizes in `frontend/src/styles/globals.css` and components.
-- [ ] T052 [P] Implement dark/light mode toggle functionality in `frontend/src/components/ThemeToggle.tsx`.
-- [ ] T053 Implement keyboard shortcuts for power users (e.g., upload, validate) in `frontend/src/utils/keyboardShortcuts.ts`.
-- [ ] T054 Review and implement GDPR compliance best practices across the application.
-- [ ] T055 Configure robust CSP headers for `frontend/` to prevent XSS.
-- [ ] T056 Conduct comprehensive unit testing for `backend/` services and `frontend/` components.
-- [ ] T057 Conduct integration testing for frontend-backend communication and validation pipeline.
-- [ ] T058 Conduct end-to-end testing for critical user journeys.
-- [ ] T059 Refine Vercel deployment pipeline for continuous integration and delivery.
+- [ ] T060 [P] Implement URL-based file import functionality in `frontend/src/utils/fileUtils.ts` and integrate into `frontend/src/pages/index.tsx`
+- [ ] T061 [P] Implement copy shareable validation summary functionality in `frontend/src/components/ValidationActions.tsx`
+- [ ] T062 [P] Implement export annotated XML with error comments in `frontend/src/components/ValidationActions.tsx`
+- [ ] T063 [P] Implement inline tooltips for technical terms across `frontend/src/components/`
+- [ ] T064 Conduct accessibility audit and implement WCAG 2.1 Level AA compliance fixes across `frontend/`
+- [ ] T065 [P] Implement responsive design adjustments for various screen sizes in `frontend/src/styles/globals.css` and components.
+- [ ] T066 [P] Implement dark/light mode toggle functionality in `frontend/src/components/ThemeToggle.tsx`.
+- [ ] T067 Implement keyboard shortcuts for power users (e.g., upload, validate) in `frontend/src/utils/keyboardShortcuts.ts`.
+- [ ] T068 Review and implement GDPR compliance best practices across the application.
+- [ ] T069 Configure robust CSP headers for `frontend/` to prevent XSS.
+- [ ] T070 Conduct comprehensive unit testing for `backend/` services and `frontend/` components, ensuring >80% unit test coverage.
+- [ ] T071 Conduct integration testing for frontend-backend communication and validation pipeline.
+- [ ] T072 Conduct end-to-end testing for critical user journeys.
+- [ ] T073 Refine Vercel deployment pipeline for continuous integration and delivery.
 
 ---
 
