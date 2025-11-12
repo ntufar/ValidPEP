@@ -30,8 +30,7 @@
 - [ ] T004 Configure Tailwind CSS in `frontend/`
 - [ ] T005 Configure Vite in `frontend/`
 - [ ] T006 Configure Next.js API Routes in `backend/`
-- [ ] T007 Setup Git repository and initial commit
-- [ ] T008 Configure linting and formatting tools for both `backend/` and `frontend/`
+- [ ] T007 Configure linting and formatting tools for both `backend/` and `frontend/`
 
 ---
 
@@ -41,14 +40,14 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T009 Setup Vercel Serverless Functions environment in `backend/`
-- [ ] T010 Implement basic API routing structure for `/api/validate` in `backend/src/api/validate.ts`
-- [ ] T011 Configure Vercel KV (Redis) for caching in `backend/src/utils/cache.ts`
-- [ ] T012 Implement utility for loading and caching PEPPOL validation artifacts (XSD, Schematron) in `backend/src/services/peppolArtifacts.ts`
-- [ ] T013 Implement core XML parsing and XSD validation logic using `libxmljs2` in `backend/src/services/xmlParser.ts`
-- [ ] T014 Implement core Schematron validation logic using `xslt3` or similar in `backend/src/services/schematronValidator.ts`
-- [ ] T015 Setup basic error handling and logging infrastructure for `backend/`
-- [ ] T016 Create base `Issue` and `ValidationResult` data structures in `backend/src/types/validation.ts`
+- [ ] T008 Setup Vercel Serverless Functions environment in `backend/`
+- [ ] T009 Implement basic API routing structure for `/api/validate` in `backend/src/api/validate.ts`
+- [ ] T010 Configure Vercel KV (Redis) for caching in `backend/src/utils/cache.ts`
+- [ ] T011 Implement utility for loading and caching PEPPOL validation artifacts (XSD, Schematron) in `backend/src/services/peppolArtifacts.ts`
+- [ ] T012 Implement core XML parsing and XSD validation logic using `libxmljs2` in `backend/src/services/xmlParser.ts`
+- [ ] T013 Implement core Schematron validation logic using `xslt3` or similar in `backend/src/services/schematronValidator.ts`
+- [ ] T014 Setup basic error handling and logging infrastructure for `backend/`
+- [ ] T015 Create base `Issue` and `ValidationResult` data structures in `backend/src/types/validation.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -62,13 +61,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T017 [P] [US1] Create `Dropzone` component in `frontend/src/components/Dropzone.tsx`
-- [ ] T018 [P] [US1] Implement client-side file size and type validation in `frontend/src/utils/fileUtils.ts`
-- [ ] T019 [US1] Integrate `Dropzone` with main application page in `frontend/src/pages/index.tsx`
-- [ ] T020 [US1] Implement file reading and Base64 encoding in `frontend/src/utils/fileUtils.ts`
-- [ ] T021 [US1] Create frontend service to call `/api/validate` endpoint in `frontend/src/services/validationService.ts`
-- [ ] T022 [US1] Implement UI for displaying validation progress states (Uploading, Parsing, Validating...) in `frontend/src/components/ValidationProgress.tsx`
-- [ ] T023 [US1] Connect frontend UI to backend validation service and progress display in `frontend/src/pages/index.tsx`
+- [ ] T016 [P] [US1] Create `Dropzone` component in `frontend/src/components/Dropzone.tsx`
+- [ ] T017 [P] [US1] Implement client-side file size and type validation in `frontend/src/utils/fileUtils.ts`
+- [ ] T018 [US1] Integrate `Dropzone` with main application page in `frontend/src/pages/index.tsx`
+- [ ] T019 [US1] Implement file reading and Base64 encoding in `frontend/src/utils/fileUtils.ts`
+- [ ] T020 [US1] Create frontend service to call `/api/validate` endpoint in `frontend/src/services/validationService.ts`
+- [ ] T021 [US1] Implement UI for displaying validation progress states (Uploading, Parsing, Validating...) in `frontend/src/components/ValidationProgress.tsx`
+- [ ] T022 [US1] Connect frontend UI to backend validation service and progress display in `frontend/src/pages/index.tsx`
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -82,11 +81,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T024 [P] [US2] Create `XmlViewer` component with syntax highlighting (using Monaco Editor) in `frontend/src/components/XmlViewer.tsx`
-- [ ] T025 [P] [US2] Create `ErrorList` component to display validation issues in `frontend/src/components/ErrorList.tsx`
-- [ ] T026 [US2] Implement logic to pass XML content and issues to `XmlViewer` and `ErrorList` in `frontend/src/pages/index.tsx`
-- [ ] T027 [US2] Implement click handler in `ErrorList` to scroll/highlight corresponding line in `XmlViewer`
-- [ ] T028 [US2] Ensure backend `/api/validate` response includes `xpath` and `lineNumber` for issues in `backend/src/api/validate.ts`
+- [ ] T023 [P] [US2] Create `XmlViewer` component with syntax highlighting (using Monaco Editor) in `frontend/src/components/XmlViewer.tsx`
+- [ ] T024 [P] [US2] Create `ErrorList` component to display validation issues in `frontend/src/components/ErrorList.tsx`
+- [ ] T025 [US2] Implement logic to pass XML content and issues to `XmlViewer` and `ErrorList` in `frontend/src/pages/index.tsx`
+- [ ] T026 [US2] Implement click handler in `ErrorList` to scroll/highlight corresponding line in `XmlViewer`
+- [ ] T027 [US2] Ensure backend `/api/validate` response includes `xpath` and `lineNumber` for issues in `backend/src/api/validate.ts`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -100,11 +99,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T029 [P] [US3] Create `ValidationStatusBadge` component in `frontend/src/components/ValidationStatusBadge.tsx`
-- [ ] T030 [P] [US3] Create `ValidationSummary` component to display error/warning counts in `frontend/src/components/ValidationSummary.tsx`
-- [ ] T031 [US3] Integrate `ValidationStatusBadge` and `ValidationSummary` into the results display in `frontend/src/pages/index.tsx`
-- [ ] T032 [US3] Implement logic to generate validation certificate (placeholder for now) in `frontend/src/utils/certificateGenerator.ts`
-- [ ] T033 [US3] Add UI element to trigger certificate download for valid invoices in `frontend/src/components/ValidationActions.tsx`
+- [ ] T028 [P] [US3] Create `ValidationStatusBadge` component in `frontend/src/components/ValidationStatusBadge.tsx`
+- [ ] T029 [P] [US3] Create `ValidationSummary` component to display error/warning counts in `frontend/src/components/ValidationSummary.tsx`
+- [ ] T030 [US3] Integrate `ValidationStatusBadge` and `ValidationSummary` into the results display in `frontend/src/pages/index.tsx`
+- [ ] T031 [US3] Implement logic to generate validation certificate (placeholder for now) in `frontend/src/utils/certificateGenerator.ts`
+- [ ] T032 [US3] Add UI element to trigger certificate download for valid invoices in `frontend/src/components/ValidationActions.tsx`
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -118,9 +117,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T034 [P] [US4] Enhance `Issue` data structure in `backend/src/types/validation.ts` to include `suggestion` field.
-- [ ] T035 [US4] Implement logic in `backend/src/services/schematronValidator.ts` to provide suggested fixes for common Schematron errors.
-- [ ] T036 [US4] Update `ErrorList` component in `frontend/src/components/ErrorList.tsx` to display suggested fixes.
+- [ ] T033 [P] [US4] Enhance `Issue` data structure in `backend/src/types/validation.ts` to include `suggestion` field.
+- [ ] T034 [US4] Implement logic in `backend/src/services/schematronValidator.ts` to provide suggested fixes for common Schematron errors.
+- [ ] T035 [US4] Update `ErrorList` component in `frontend/src/components/ErrorList.tsx` to display suggested fixes.
 
 ---
 
@@ -132,8 +131,8 @@
 
 ### Implementation for User Story 5
 
-- [ ] T037 [P] [US5] Ensure `xpath` is consistently extracted and included in `Issue` objects by `backend/src/services/xmlParser.ts` and `backend/src/services/schematronValidator.ts`.
-- [ ] T038 [US5] Add "Copy XPath" button/functionality to `ErrorList` component in `frontend/src/components/ErrorList.tsx`.
+- [ ] T036 [P] [US5] Ensure `xpath` is consistently extracted and included in `Issue` objects by `backend/src/services/xmlParser.ts` and `backend/src/services/schematronValidator.ts`.
+- [ ] T037 [US5] Add "Copy XPath" button/functionality to `ErrorList` component in `frontend/src/components/ErrorList.tsx`.
 
 ---
 
@@ -145,9 +144,9 @@
 
 ### Implementation for User Story 6
 
-- [ ] T039 [P] [US6] Implement format detection logic (UBL vs CII) in `backend/src/services/invoiceDetector.ts`.
-- [ ] T040 [US6] Update `backend/src/api/validate.ts` to use detected format for selecting appropriate validation rules.
-- [ ] T041 [US6] Ensure `frontend/src/services/validationService.ts` can pass `format` parameter if user overrides `auto`.
+- [ ] T038 [P] [US6] Implement format detection logic (UBL vs CII) in `backend/src/services/invoiceDetector.ts`.
+- [ ] T039 [US6] Update `backend/src/api/validate.ts` to use detected format for selecting appropriate validation rules.
+- [ ] T040 [US6] Ensure `frontend/src/services/validationService.ts` can pass `format` parameter if user overrides `auto`.
 
 ---
 
@@ -159,10 +158,10 @@
 
 ### Implementation for User Story 7
 
-- [ ] T042 [P] [US7] Implement country detection logic from invoice data in `backend/src/services/invoiceDetector.ts`.
-- [ ] T043 [US7] Update `backend/src/services/peppolArtifacts.ts` to load country-specific Schematron rules.
-- [ ] T044 [US7] Update `backend/src/api/validate.ts` to apply country-specific rules based on detected or specified country.
-- [ ] T045 [US7] Add UI element for manual country override in `frontend/src/components/ValidationOptions.tsx`.
+- [ ] T041 [P] [US7] Implement country detection logic from invoice data in `backend/src/services/invoiceDetector.ts`.
+- [ ] T042 [US7] Update `backend/src/services/peppolArtifacts.ts` to load country-specific Schematron rules.
+- [ ] T043 [US7] Update `backend/src/api/validate.ts` to apply country-specific rules based on detected or specified country.
+- [ ] T044 [US7] Add UI element for manual country override in `frontend/src/components/ValidationOptions.tsx`.
 
 ---
 
@@ -174,9 +173,9 @@
 
 ### Implementation for User Story 8
 
-- [ ] T046 [P] [US8] Implement JSON report generation in `backend/src/services/reportGenerator.ts`.
-- [ ] T047 [P] [US8] Implement HTML report generation in `backend/src/services/reportGenerator.ts`.
-- [ ] T048 [US8] Add UI buttons to download JSON and HTML reports in `frontend/src/components/ValidationActions.tsx`.
+- [ ] T045 [P] [US8] Implement JSON report generation in `backend/src/services/reportGenerator.ts`.
+- [ ] T046 [P] [US8] Implement HTML report generation in `backend/src/services/reportGenerator.ts`.
+- [ ] T047 [US8] Add UI buttons to download JSON and HTML reports in `frontend/src/components/ValidationActions.tsx`.
 
 ---
 
@@ -188,9 +187,9 @@
 
 ### Implementation for User Story 9
 
-- [ ] T049 [P] [US9] Create a collection of example valid invoices (XML files) in `public/examples/`.
-- [ ] T050 [P] [US9] Implement a backend endpoint to serve example invoices in `backend/src/api/examples.ts`.
-- [ ] T051 [US9] Create an "Examples" page/section in `frontend/src/pages/examples.tsx` to list and allow download of examples.
+- [ ] T048 [P] [US9] Create a collection of example valid invoices (XML files) in `public/examples/`.
+- [ ] T049 [P] [US9] Implement a backend endpoint to serve example invoices in `backend/src/api/examples.ts`.
+- [ ] T050 [US9] Create an "Examples" page/section in `frontend/src/pages/examples.tsx` to list and allow download of examples.
 
 ---
 
@@ -198,15 +197,15 @@
 
 **Purpose**: Address overall quality, performance, security, and user experience improvements across the application.
 
-- [ ] T052 [P] Implement responsive design adjustments for various screen sizes in `frontend/src/styles/globals.css` and components.
-- [ ] T053 [P] Implement dark/light mode toggle functionality in `frontend/src/components/ThemeToggle.tsx`.
-- [ ] T054 Implement keyboard shortcuts for power users (e.g., upload, validate) in `frontend/src/utils/keyboardShortcuts.ts`.
-- [ ] T055 Review and implement GDPR compliance best practices across the application.
-- [ ] T056 Configure robust CSP headers for `frontend/` to prevent XSS.
-- [ ] T057 Conduct comprehensive unit testing for `backend/` services and `frontend/` components.
-- [ ] T058 Conduct integration testing for frontend-backend communication and validation pipeline.
-- [ ] T059 Conduct end-to-end testing for critical user journeys.
-- [ ] T060 Refine Vercel deployment pipeline for continuous integration and delivery.
+- [ ] T051 [P] Implement responsive design adjustments for various screen sizes in `frontend/src/styles/globals.css` and components.
+- [ ] T052 [P] Implement dark/light mode toggle functionality in `frontend/src/components/ThemeToggle.tsx`.
+- [ ] T053 Implement keyboard shortcuts for power users (e.g., upload, validate) in `frontend/src/utils/keyboardShortcuts.ts`.
+- [ ] T054 Review and implement GDPR compliance best practices across the application.
+- [ ] T055 Configure robust CSP headers for `frontend/` to prevent XSS.
+- [ ] T056 Conduct comprehensive unit testing for `backend/` services and `frontend/` components.
+- [ ] T057 Conduct integration testing for frontend-backend communication and validation pipeline.
+- [ ] T058 Conduct end-to-end testing for critical user journeys.
+- [ ] T059 Refine Vercel deployment pipeline for continuous integration and delivery.
 
 ---
 
@@ -257,8 +256,8 @@
 # (No explicit test tasks generated as per prompt, but would go here)
 
 # Launch all parallelizable implementation tasks for User Story 1 together:
-Task: "T017 [P] [US1] Create `Dropzone` component in `frontend/src/components/Dropzone.tsx`"
-Task: "T018 [P] [US1] Implement client-side file size and type validation in `frontend/src/utils/fileUtils.ts`"
+Task: "T016 [P] [US1] Create `Dropzone` component in `frontend/src/components/Dropzone.tsx`"
+Task: "T017 [P] [US1] Implement client-side file size and type validation in `frontend/src/utils/fileUtils.ts`"
 ```
 
 ---
