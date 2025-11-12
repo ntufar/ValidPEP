@@ -5,6 +5,14 @@
 **Status**: Draft  
 **Input**: User description: "ValidPEP is a modern web-based PEPPOL BIS Billing validation dashboard that addresses critical pain points in electronic invoice compliance. The platform provides real-time validation, enhanced error reporting, and actionable insights for businesses implementing PEPPOL e-invoicing. More detailed PRD is in @/Users/ntufar/projects/ValidPEP/docs/validpep-prd.md"
 
+## Clarifications
+### Session 2025-11-12
+- Q: How should a validated invoice be uniquely identified for audit trails or future reference, given the privacy-first approach? → A: Content Hash (e.g., SHA256)
+- Q: What are the distinct states an invoice can be in during the validation process, and how should these states be communicated to the user? → A: Uploading -> Parsing -> Validating (Schema) -> Validating (Schematron) -> Validated/Invalid
+- Q: Given the privacy-first approach, what operational metrics or logs (if any) will be collected to monitor the health and performance of the validation service without compromising user data? → A: Aggregate metrics only (e.g., total validations, error counts by type, average validation time)
+- Q: How should the system behave if external PEPPOL validation artifacts or code lists are temporarily unavailable or return unexpected data? → A: Use cached versions of artifacts/code lists if available
+- Q: What is the desired user experience and system behavior when a user exceeds the validation rate limits (e.g., for UI-based validation)? → A: No explicit rate limiting for UI-based validation in MVP
+
 ## User Scenarios & Testing (mandatory)
 
 ### User Story 1 - Drag and Drop Validation (Priority: P1)
@@ -149,7 +157,7 @@ As a new user, I want example valid invoices so that I can understand the expect
 -   **Large File Uploads**: How does the system handle files close to or exceeding the 10 MB limit? (Should provide a clear message if too large, and maintain performance for files within limits).
 -   **Encoding Issues**: How does the system handle invoices with unusual or mixed character encodings? (Should attempt to detect and process common encodings, and report issues if unresolvable).
 -   **No Internet Connection**: What is the user experience if the backend validation service is unreachable? (Should gracefully degrade, potentially offering client-side schema validation if possible, and inform the user).
--   **Rapid Consecutive Validations**: How does the system handle a user submitting multiple validation requests in quick succession? (Should manage queueing or rate-limiting gracefully without crashing).
+-   **Rapid Consecutive Validations**: How does the system handle a user submitting multiple validation requests in quick succession? (For MVP, there is no explicit rate limiting for UI-based validation. The system should handle as many as resources allow without crashing).
 
 ## Requirements (mandatory)
 
@@ -171,6 +179,7 @@ As a new user, I want example valid invoices so that I can understand the expect
     -   **FR2.5:** Check code list compliance (ISO codes, VAT categories)
     -   **FR2.6:** Detect encoding issues and special characters
     -   **FR2.7:** Validate calculation correctness (totals, VAT, rounding)
+    -   **FR2.8:** Use cached versions of external PEPPOL validation artifacts and code lists if live versions are temporarily unavailable.
 
 -   **FR3: Error Reporting**
     -   **FR3.1:** Display errors categorized by severity (Error, Warning, Info)
@@ -183,7 +192,7 @@ As a new user, I want example valid invoices so that I can understand the expect
 
 -   **FR4: User Interface**
     -   **FR4.1:** Clean, modern dashboard design
-    -   **FR4.2:** Real-time validation progress indicator
+    -   **FR4.2:** Real-time validation progress indicator, displaying states: Uploading, Parsing, Validating (Schema), Validating (Schematron), Validated/Invalid.
     -   **FR4.3:** Split view: XML source + validation results
     -   **FR4.4:** Syntax highlighting for XML
     -   **FR4.5:** Clickable errors that jump to XML location
@@ -210,6 +219,7 @@ As a new user, I want example valid invoices so that I can understand the expect
 
 -   **Invoice**: The XML document representing an electronic invoice (UBL or CII format) that is submitted for validation.
     -   *Attributes (conceptual):* Content (XML data), Format (UBL/CII), Size, Encoding, Country (detected/specified).
+    -   *Unique Identifier:* Content Hash (e.g., SHA256)
 -   **Validation Rule**: A specific rule or set of rules (e.g., XSD schema, Schematron business rule, country-specific rule) used to check the compliance of an Invoice.
     -   *Attributes (conceptual):* Type (XSD/Schematron/Country), Version, Severity.
 -   **Validation Result**: The outcome of applying Validation Rules to an Invoice, comprising a collection of issues.
@@ -228,3 +238,4 @@ As a new user, I want example valid invoices so that I can understand the expect
 -   **SC-005**: System uptime: 99.5% availability.
 -   **SC-006**: Initial page load: <1 second.
 -   **SC-007**: Handle 10,000 validations/day on free tier.
+-   **SC-008**: Operational monitoring provides aggregate metrics (total validations, error counts by type, average validation time) without compromising user data.
