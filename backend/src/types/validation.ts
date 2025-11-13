@@ -1,13 +1,13 @@
-// backend/src/types/validation.ts
-
 export enum IssueSeverity {
   Error = 'error',
   Warning = 'warning',
   Info = 'info',
 }
 
+export type IssueSeverityType = 'error' | 'warning' | 'info';
+
 export interface Issue {
-  severity: IssueSeverity;
+  severity: IssueSeverity | IssueSeverityType;
   code?: string;
   message: string;
   xpath?: string;
@@ -16,21 +16,23 @@ export interface Issue {
   specLink?: string;
 }
 
-export enum ValidationStatus {
-  Uploading = 'Uploading',
-  Parsing = 'Parsing',
-  Validating = 'Validating',
-  ValidatingSchema = 'Validating_Schema',
-  ValidatingSchematron = 'Validating_Schematron',
-  Validated = 'Validated',
-  Invalid = 'Invalid',
-}
+
+export type ValidationStatus =
+  | 'Uploading'
+  | 'Parsing'
+  | 'Validating'
+  | 'Validating_Schema'
+  | 'Validating_Schematron'
+  | 'Validated'
+  | 'Invalid';
 
 export enum InvoiceFormat {
   UBL = 'ubl',
   CII = 'cii',
   Auto = 'auto',
 }
+
+export type InvoiceFormatType = 'ubl' | 'cii' | 'auto';
 
 export interface ValidationResult {
   id: string; // UUID
@@ -45,7 +47,7 @@ export interface ValidationResult {
 
 export interface ValidateRequest {
   file: string; // Base64 encoded XML content
-  format?: InvoiceFormat;
+  format?: InvoiceFormat | InvoiceFormatType;
   country?: string; // e.g., NO, SE, DK, NL, DE, auto
   options?: {
     includeWarnings?: boolean;
@@ -55,7 +57,7 @@ export interface ValidateRequest {
 
 export interface ValidateResponse {
   valid: boolean;
-  format: InvoiceFormat;
+  format: InvoiceFormat | InvoiceFormatType;
   version: string;
   country?: string;
   timestamp: string;

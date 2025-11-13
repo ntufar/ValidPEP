@@ -12,10 +12,13 @@
     "vercel-build": "npm run prepare-docs && next build"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "libxmljs2": "^0.37.0",
+    "monaco-editor": "^0.54.0",
     "next": "16.0.2",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "react-dropzone": "^14.3.8",
     "saxon-js": "^2.7.0",
     "schematron-runner": "^1.0.0",
     "xslt3": "^2.7.0"
