@@ -1,6 +1,6 @@
 // backend/src/services/peppolArtifacts.ts
 
-import { promises as fs } from 'fs';
+import { promises as fs, existsSync } from 'fs';
 import path from 'path';
 import { kv } from '../utils/cache';
 import { InvoiceFormat } from '../types/validation';
@@ -8,7 +8,13 @@ import { InvoiceFormat } from '../types/validation';
 const ARTIFACT_CACHE_PREFIX = 'peppol_validation_artifacts';
 const DEFAULT_TTL_SECONDS = 60 * 60 * 24; // 24 hours
 
-const DOCS_ROOT = path.resolve(process.cwd(), '../docs');
+const POSSIBLE_DOC_ROOTS = [
+  path.resolve(process.cwd(), 'docs'),
+  path.resolve(process.cwd(), '../docs'),
+  path.resolve(process.cwd(), '../../docs'),
+];
+
+const DOCS_ROOT = POSSIBLE_DOC_ROOTS.find(candidate => existsSync(candidate)) ?? POSSIBLE_DOC_ROOTS[0];
 const PEPPOL_XSD_BASE_URL = 'https://docs.peppol.eu/poacc/billing/3.0/xsd/';
 const UBL_MAINDOC_PATH = 'maindoc/UBL-Invoice-2.1.xsd';
 const CII_MAINDOC_PATH = 'cii/maindoc/CrossIndustryInvoice_100pD16B.xsd';
