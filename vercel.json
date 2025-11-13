@@ -1,8 +1,7 @@
 {
-  "buildCommand": "npm run vercel-build",
-  "outputDirectory": ".next",
-  "installCommand": "npm install",
-  "framework": "nextjs",
-  "rootDirectory": "backend"
+  "installCommand": "cd backend && npm install",
+  "buildCommand": "cd backend && npm run vercel-build",
+  "outputDirectory": "backend/.next",
+  "framework": "nextjs"
 }
 
