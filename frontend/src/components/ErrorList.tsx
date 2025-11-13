@@ -1,7 +1,7 @@
 // frontend/src/components/ErrorList.tsx
 
 import React from 'react';
-import { Issue, IssueSeverity } from '../types/validation';
+import type { Issue, IssueSeverity } from '../types';
 
 interface ErrorListProps {
   issues: Issue[];
@@ -15,11 +15,11 @@ const ErrorList: React.FC<ErrorListProps> = ({ issues, onIssueClick }) => {
 
   const getSeverityColor = (severity: IssueSeverity) => {
     switch (severity) {
-      case IssueSeverity.Error:
+      case 'error':
         return 'text-red-400';
-      case IssueSeverity.Warning:
+      case 'warning':
         return 'text-yellow-400';
-      case IssueSeverity.Info:
+      case 'info':
         return 'text-blue-400';
       default:
         return 'text-gray-400';
@@ -38,7 +38,22 @@ const ErrorList: React.FC<ErrorListProps> = ({ issues, onIssueClick }) => {
           >
             <p className="font-medium">{issue.message}</p>
             {issue.lineNumber && <p className="text-sm text-gray-500">Line: {issue.lineNumber}</p>}
-            {issue.xpath && <p className="text-sm text-gray-500">XPath: {issue.xpath}</p>}
+            {issue.xpath && (
+              <p className="text-sm text-gray-500 flex items-center">
+                XPath: {issue.xpath}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent li onClick from firing
+                    navigator.clipboard.writeText(issue.xpath || '');
+                    // Optionally, add a temporary visual feedback like a tooltip
+                  }}
+                  className="ml-2 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded-md"
+                  title="Copy XPath to clipboard"
+                >
+                  Copy
+                </button>
+              </p>
+            )}
             {issue.suggestion && <p className="text-sm text-gray-500">Suggestion: {issue.suggestion}</p>}
             {issue.specLink && (
               <a href={issue.specLink} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline text-sm">

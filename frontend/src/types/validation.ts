@@ -1,10 +1,4 @@
-// backend/src/types/validation.ts
-
-export enum IssueSeverity {
-  Error = 'error',
-  Warning = 'warning',
-  Info = 'info',
-}
+export type IssueSeverity = 'error' | 'warning' | 'info';
 
 export interface Issue {
   severity: IssueSeverity;
@@ -16,20 +10,17 @@ export interface Issue {
   specLink?: string;
 }
 
-export enum ValidationStatus {
-  Uploading = 'Uploading',
-  Parsing = 'Parsing',
-  ValidatingSchema = 'Validating_Schema',
-  ValidatingSchematron = 'Validating_Schematron',
-  Validated = 'Validated',
-  Invalid = 'Invalid',
-}
 
-export enum InvoiceFormat {
-  UBL = 'ubl',
-  CII = 'cii',
-  Auto = 'auto',
-}
+export type ValidationStatus =
+  | 'Uploading'
+  | 'Parsing'
+  | 'Validating'
+  | 'Validating_Schema'
+  | 'Validating_Schematron'
+  | 'Validated'
+  | 'Invalid';
+
+export type InvoiceFormat = 'ubl' | 'cii' | 'auto';
 
 export interface ValidationResult {
   id: string; // UUID

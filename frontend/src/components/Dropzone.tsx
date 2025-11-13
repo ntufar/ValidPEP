@@ -36,9 +36,11 @@ const Dropzone: React.FC<DropzoneProps> = ({ onFileAccepted }) => {
       className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200 ${borderColor} ${isDragActive ? 'bg-gray-700' : 'bg-gray-800'}`}
     >
       <input {...getInputProps()} />
-      {isDragAccept && <p className="text-green-500">Drop the XML file here ...</p>}
-      {isDragReject && <p className="text-red-500">Only .xml files are accepted</p>}
-      {!isDragActive && <p className="text-gray-400">Drag 'n' drop an XML file here, or click to select file</p>}
+      <div aria-live="polite" className="text-center">
+        {isDragAccept && <p className="text-green-500">Drop the XML file here ...</p>}
+        {isDragReject && <p className="text-red-500">Only .xml files are accepted</p>}
+        {!isDragActive && <p className="text-gray-400">Drag 'n' drop an XML file here, or click to select file</p>}
+      </div>
       <p className="text-sm text-gray-500 mt-2">Max file size: 10MB</p>
     </div>
   );

@@ -1,6 +1,6 @@
 // frontend/src/utils/certificateGenerator.ts
 
-import { ValidateResponse } from '../../backend/src/types/validation'; // Adjust path as needed
+import type { ValidateResponse } from '../types/validation';
 
 export function generateValidationCertificate(validationResult: ValidateResponse): string {
   // This is a placeholder function.
