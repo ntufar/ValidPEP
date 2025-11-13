@@ -24,13 +24,13 @@
 
 **Purpose**: Project initialization and basic structure for both frontend and backend.
 
-- [ ] T001 Create base project directories: `backend/`, `frontend/`
-- [ ] T002 Initialize Node.js project in `backend/`
-- [ ] T003 Initialize React/TypeScript project in `frontend/`
-- [ ] T004 Configure Tailwind CSS in `frontend/`
-- [ ] T005 Configure Vite in `frontend/`
-- [ ] T006 Configure Next.js API Routes in `backend/`
-- [ ] T007 Configure linting and formatting tools for both `backend/` and `frontend/`
+- [x] T001 Create base project directories: `backend/`, `frontend/`
+- [x] T002 Initialize Node.js project in `backend/`
+- [x] T003 Initialize React/TypeScript project in `frontend/`
+- [x] T004 Configure Tailwind CSS in `frontend/`
+- [x] T005 Configure Vite in `frontend/`
+- [x] T006 Configure Next.js API Routes in `backend/`
+- [x] T007 Configure linting and formatting tools for both `backend/` and `frontend/`
 
 ---
 
@@ -40,14 +40,14 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 Setup Vercel Serverless Functions environment in `backend/`
-- [ ] T009 Implement basic API routing structure for `/api/validate` in `backend/src/api/validate.ts`
-- [ ] T010 Configure Vercel KV (Redis) for caching in `backend/src/utils/cache.ts`
-- [ ] T011 Implement utility for loading and caching PEPPOL validation artifacts (XSD, Schematron) in `backend/src/services/peppolArtifacts.ts`
-- [ ] T012 Implement core XML parsing and XSD validation logic using `libxmljs2` in `backend/src/services/xmlParser.ts`
-- [ ] T013 Implement core Schematron validation logic using `xslt3` or similar in `backend/src/services/schematronValidator.ts`
-- [ ] T014 Setup basic error handling and logging infrastructure for `backend/`
-- [ ] T015 Create base `Issue` and `ValidationResult` data structures in `backend/src/types/validation.ts`
+- [x] T008 Setup Vercel Serverless Functions environment in `backend/`
+- [x] T009 Implement basic API routing structure for `/api/validate` in `backend/src/api/validate.ts`
+- [x] T010 Configure Vercel KV (Redis) for caching in `backend/src/utils/cache.ts`
+- [x] T011 Implement utility for loading and caching PEPPOL validation artifacts (XSD, Schematron) in `backend/src/services/peppolArtifacts.ts`
+- [x] T012 Implement core XML parsing and XSD validation logic using `libxmljs2` in `backend/src/services/xmlParser.ts`
+- [x] T013 Implement core Schematron validation logic using `xslt3` or similar in `backend/src/services/schematronValidator.ts`
+- [x] T014 Setup basic error handling and logging infrastructure for `backend/`
+- [x] T015 Create base `Issue` and `ValidationResult` data structures in `backend/src/types/validation.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -61,13 +61,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T016 [P] [US1] Create `Dropzone` component in `frontend/src/components/Dropzone.tsx`
-- [ ] T017 [P] [US1] Implement client-side file size and type validation in `frontend/src/utils/fileUtils.ts`
-- [ ] T018 [US1] Integrate `Dropzone` with main application page in `frontend/src/pages/index.tsx`
-- [ ] T019 [US1] Implement file reading and Base64 encoding in `frontend/src/utils/fileUtils.ts`
-- [ ] T020 [US1] Create frontend service to call `/api/validate` endpoint in `frontend/src/services/validationService.ts`
-- [ ] T021 [US1] Implement UI for displaying validation progress states (Uploading, Parsing, Validating...) in `frontend/src/components/ValidationProgress.tsx`
-- [ ] T022 [US1] Connect frontend UI to backend validation service and progress display in `frontend/src/pages/index.tsx`
+- [x] T016 [P] [US1] Create `Dropzone` component in `frontend/src/components/Dropzone.tsx`
+- [x] T017 [P] [US1] Implement client-side file size and type validation in `frontend/src/utils/fileUtils.ts`
+- [x] T018 [US1] Integrate `Dropzone` with main application page in `frontend/src/pages/index.tsx`
+- [x] T019 [US1] Implement file reading and Base64 encoding in `frontend/src/utils/fileUtils.ts`
+- [x] T020 [US1] Create frontend service to call `/api/validate` endpoint in `frontend/src/services/validationService.ts`
+- [x] T021 [US1] Implement UI for displaying validation progress states (Uploading, Parsing, Validating...) in `frontend/src/components/ValidationProgress.tsx`
+- [x] T022 [US1] Connect frontend UI to backend validation service and progress display in `frontend/src/pages/index.tsx`
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -81,11 +81,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T023 [P] [US2] Create `XmlViewer` component with syntax highlighting (using Monaco Editor) in `frontend/src/components/XmlViewer.tsx`
-- [ ] T024 [P] [US2] Create `ErrorList` component to display validation issues in `frontend/src/components/ErrorList.tsx`
-- [ ] T025 [US2] Implement logic to pass XML content and issues to `XmlViewer` and `ErrorList` in `frontend/src/pages/index.tsx`
-- [ ] T026 [US2] Implement click handler in `ErrorList` to scroll/highlight corresponding line in `XmlViewer`
-- [ ] T027 [US2] Ensure backend `/api/validate` response includes `xpath` and `lineNumber` for issues in `backend/src/api/validate.ts`
+- [x] T023 [P] [US2] Create `XmlViewer` component with syntax highlighting (using Monaco Editor) in `frontend/src/components/XmlViewer.tsx`
+- [x] T024 [P] [US2] Create `ErrorList` component to display validation issues in `frontend/src/components/ErrorList.tsx`
+- [x] T025 [US2] Implement logic to pass XML content and issues to `XmlViewer` and `ErrorList` in `frontend/src/pages/index.tsx`
+- [x] T026 [US2] Implement click handler in `ErrorList` to scroll/highlight corresponding line in `XmlViewer`
+- [x] T027 [US2] Ensure backend `/api/validate` response includes `xpath` and `lineNumber` for issues in `backend/src/api/validate.ts`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -99,11 +99,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T028 [P] [US3] Create `ValidationStatusBadge` component in `frontend/src/components/ValidationStatusBadge.tsx`
-- [ ] T029 [P] [US3] Create `ValidationSummary` component to display error/warning counts in `frontend/src/components/ValidationSummary.tsx`
-- [ ] T030 [US3] Integrate `ValidationStatusBadge` and `ValidationSummary` into the results display in `frontend/src/pages/index.tsx`
-- [ ] T031 [US3] Implement logic to generate validation certificate (placeholder for now) in `frontend/src/utils/certificateGenerator.ts`
-- [ ] T032 [US3] Add UI element to trigger certificate download for valid invoices in `frontend/src/components/ValidationActions.tsx`
+- [x] T028 [P] [US3] Create `ValidationStatusBadge` component in `frontend/src/components/ValidationStatusBadge.tsx`
+- [x] T029 [P] [US3] Create `ValidationSummary` component to display error/warning counts in `frontend/src/components/ValidationSummary.tsx`
+- [x] T030 [US3] Integrate `ValidationStatusBadge` and `ValidationSummary` into the results display in `frontend/src/pages/index.tsx`
+- [x] T031 [US3] Implement logic to generate validation certificate (placeholder for now) in `frontend/src/utils/certificateGenerator.ts`
+- [x] T032 [US3] Add UI element to trigger certificate download for valid invoices in `frontend/src/components/ValidationActions.tsx`
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -211,6 +211,8 @@
 - [ ] T071 Conduct integration testing for frontend-backend communication and validation pipeline.
 - [ ] T072 Conduct end-to-end testing for critical user journeys.
 - [ ] T073 Refine Vercel deployment pipeline for continuous integration and delivery.
+
+- [ ] T074 Define and implement UI for empty states (e.g., initial dashboard view before any file upload) in `frontend/src/pages/index.tsx` and relevant components.
 
 ---
 

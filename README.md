@@ -86,10 +86,3 @@ vercel dev
 
 Once the application is running, navigate to `http://localhost:3000` (or the port specified by Vite/Next.js). Drag and drop your PEPPOL BIS Billing XML invoice file into the designated area. Observe real-time validation progress and detailed error reports.
 
-## Contributing
-
-Refer to `CONTRIBUTING.md` for guidelines on how to contribute to this project.
-
-## License
-
-This project is licensed under the [License Name] - see the `LICENSE.md` file for details.
