@@ -19,6 +19,7 @@ export interface Issue {
 export enum ValidationStatus {
   Uploading = 'Uploading',
   Parsing = 'Parsing',
+  Validating = 'Validating',
   ValidatingSchema = 'Validating_Schema',
   ValidatingSchematron = 'Validating_Schematron',
   Validated = 'Validated',

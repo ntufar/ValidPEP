@@ -1,7 +1,7 @@
 // frontend/src/components/ValidationProgress.tsx
 
 import React from 'react';
-import { ValidationStatus } from '../types/validation';
+import type { ValidationStatus } from '../types';
 
 interface ValidationProgressProps {
   status: ValidationStatus;
@@ -9,12 +9,13 @@ interface ValidationProgressProps {
 }
 
 const statusMessages: Record<ValidationStatus, string> = {
-  [ValidationStatus.Uploading]: 'Uploading file...',
-  [ValidationStatus.Parsing]: 'Parsing XML...',
-  [ValidationStatus.ValidatingSchema]: 'Validating against XSD schema...',
-  [ValidationStatus.ValidatingSchematron]: 'Applying Schematron rules...',
-  [ValidationStatus.Validated]: 'Validation complete: Valid!',
-  [ValidationStatus.Invalid]: 'Validation complete: Invalid!',
+  Uploading: 'Uploading file...',
+  Parsing: 'Parsing XML...',
+  Validating: 'Running validation...',
+  Validating_Schema: 'Validating against XSD schema...',
+  Validating_Schematron: 'Applying Schematron rules...',
+  Validated: 'Validation complete: Valid!',
+  Invalid: 'Validation complete: Invalid!',
 };
 
 const ValidationProgress: React.FC<ValidationProgressProps> = ({ status, message }) => {
@@ -22,14 +23,26 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({ status, message
 
   const getStatusColor = (currentStatus: ValidationStatus) => {
     switch (currentStatus) {
-      case ValidationStatus.Validated:
+      case 'Validated':
         return 'text-green-500';
-      case ValidationStatus.Invalid:
+      case 'Invalid':
         return 'text-red-500';
       default:
         return 'text-blue-500';
     }
   };
+
+  const progressMap: Partial<Record<ValidationStatus, number>> = {
+    Uploading: 16,
+    Parsing: 33,
+    Validating: 66,
+    Validating_Schema: 66,
+    Validating_Schematron: 83,
+    Validated: 100,
+    Invalid: 100,
+  };
+
+  const progress = progressMap[status] ?? 16;
 
   return (
     <div className="mt-8 p-6 bg-gray-800 rounded-lg shadow-lg">
@@ -37,14 +50,14 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({ status, message
       <div className="flex items-center justify-center space-x-4">
         <div className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden">
           <div
-            className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-in-out
-              ${status === ValidationStatus.Uploading && 'w-1/6 bg-blue-500'}
-              ${status === ValidationStatus.Parsing && 'w-2/6 bg-blue-500'}
-              ${status === ValidationStatus.ValidatingSchema && 'w-3/6 bg-blue-500'}
-              ${status === ValidationStatus.ValidatingSchematron && 'w-4/6 bg-blue-500'}
-              ${status === ValidationStatus.Validated && 'w-full bg-green-500'}
-              ${status === ValidationStatus.Invalid && 'w-full bg-red-500'}
-            `}
+            className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-in-out ${
+              status === 'Validated'
+                ? 'bg-green-500'
+                : status === 'Invalid'
+                  ? 'bg-red-500'
+                  : 'bg-blue-500'
+            }`}
+            style={{ width: `${progress}%` }}
           ></div>
         </div>
       </div>

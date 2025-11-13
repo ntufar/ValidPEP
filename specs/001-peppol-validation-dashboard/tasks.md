@@ -117,9 +117,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T033 [P] [US4] Enhance `Issue` data structure in `backend/src/types/validation.ts` to include `suggestion` field.
-- [ ] T034 [US4] Implement logic in `backend/src/services/schematronValidator.ts` to provide suggested fixes for common Schematron errors.
-- [ ] T035 [US4] Update `ErrorList` component in `frontend/src/components/ErrorList.tsx` to display suggested fixes.
+- [x] T033 [P] [US4] Enhance `Issue` data structure in `backend/src/types/validation.ts` to include `suggestion` field.
+- [x] T034 [US4] Implement logic in `backend/src/services/schematronValidator.ts` to provide suggested fixes for common Schematron errors.
+- [x] T035 [US4] Update `ErrorList` component in `frontend/src/components/ErrorList.tsx` to display suggested fixes.
 
 ---
 
@@ -131,8 +131,8 @@
 
 ### Implementation for User Story 5
 
-- [ ] T036 [P] [US5] Ensure `xpath` is consistently extracted and included in `Issue` objects by `backend/src/services/xmlParser.ts` and `backend/src/services/schematronValidator.ts`.
-- [ ] T037 [US5] Add "Copy XPath" button/functionality to `ErrorList` component in `frontend/src/components/ErrorList.tsx`.
+- [x] T036 [P] [US5] Ensure `xpath` is consistently extracted and included in `Issue` objects by `backend/src/services/xmlParser.ts` and `backend/src/services/schematronValidator.ts`.
+- [x] T037 [US5] Add "Copy XPath" button/functionality to `ErrorList` component in `frontend/src/components/ErrorList.tsx`.
 
 ---
 
@@ -144,9 +144,9 @@
 
 ### Implementation for User Story 6
 
-- [ ] T038 [P] [US6] Implement format detection logic (UBL vs CII) in `backend/src/services/invoiceDetector.ts`.
-- [ ] T039 [US6] Update `backend/src/api/validate.ts` to use detected format for selecting appropriate validation rules.
-- [ ] T040 [US6] Ensure `frontend/src/services/validationService.ts` can pass `format` parameter if user overrides `auto`.
+- [x] T038 [P] [US6] Implement format detection logic (UBL vs CII) in `backend/src/services/invoiceDetector.ts`.
+- [x] T039 [US6] Update `backend/src/api/validate.ts` to use detected format for selecting appropriate validation rules.
+- [x] T040 [US6] Ensure `frontend/src/services/validationService.ts` can pass `format` parameter if user overrides `auto`.
 
 ---
 
@@ -158,10 +158,10 @@
 
 ### Implementation for User Story 7
 
-- [ ] T041 [P] [US7] Implement country detection logic from invoice data in `backend/src/services/invoiceDetector.ts`.
-- [ ] T042 [US7] Update `backend/src/services/peppolArtifacts.ts` to load country-specific Schematron rules.
-- [ ] T043 [US7] Update `backend/src/api/validate.ts` to apply country-specific rules based on detected or specified country.
-- [ ] T044 [US7] Add UI element for manual country override in `frontend/src/components/ValidationOptions.tsx`.
+- [x] T041 [P] [US7] Implement country detection logic from invoice data in `backend/src/services/invoiceDetector.ts`.
+- [x] T042 [US7] Update `backend/src/services/peppolArtifacts.ts` to load country-specific Schematron rules.
+- [x] T043 [US7] Update `backend/src/api/validate.ts` to apply country-specific rules based on detected or specified country.
+- [x] T044 [US7] Add UI element for manual country override in `frontend/src/components/ValidationOptions.tsx`.
 
 ---
 
@@ -173,9 +173,9 @@
 
 ### Implementation for User Story 8
 
-- [ ] T045 [P] [US8] Implement JSON report generation in `backend/src/services/reportGenerator.ts`.
-- [ ] T046 [P] [US8] Implement HTML report generation in `backend/src/services/reportGenerator.ts`.
-- [ ] T047 [US8] Add UI buttons to download JSON and HTML reports in `frontend/src/components/ValidationActions.tsx`.
+- [x] T045 [P] [US8] Implement JSON report generation in `backend/src/services/reportGenerator.ts`.
+- [x] T046 [P] [US8] Implement HTML report generation in `backend/src/services/reportGenerator.ts`.
+- [x] T047 [US8] Add UI buttons to download JSON and HTML reports in `frontend/src/components/ValidationActions.tsx`.
 
 ---
 
@@ -187,9 +187,9 @@
 
 ### Implementation for User Story 9
 
-- [ ] T048 [P] [US9] Create a collection of example valid invoices (XML files) in `public/examples/`.
-- [ ] T049 [P] [US9] Implement a backend endpoint to serve example invoices in `backend/src/api/examples.ts`.
-- [ ] T050 [US9] Create an "Examples" page/section in `frontend/src/pages/examples.tsx` to list and allow download of examples.
+- [x] T048 [P] [US9] Create a collection of example valid invoices (XML files) in `public/examples/`.
+- [x] T049 [P] [US9] Implement a backend endpoint to serve example invoices in `backend/src/api/examples.ts`.
+- [x] T050 [US9] Create an "Examples" page/section in `frontend/src/pages/examples.tsx` to list and allow download of examples.
 
 ---
 
@@ -197,22 +197,22 @@
 
 **Purpose**: Address overall quality, performance, security, and user experience improvements across the application.
 
-- [ ] T060 [P] Implement URL-based file import functionality in `frontend/src/utils/fileUtils.ts` and integrate into `frontend/src/pages/index.tsx`
-- [ ] T061 [P] Implement copy shareable validation summary functionality in `frontend/src/components/ValidationActions.tsx`
-- [ ] T062 [P] Implement export annotated XML with error comments in `frontend/src/components/ValidationActions.tsx`
-- [ ] T063 [P] Implement inline tooltips for technical terms across `frontend/src/components/`
-- [ ] T064 Conduct accessibility audit and implement WCAG 2.1 Level AA compliance fixes across `frontend/`
-- [ ] T065 [P] Implement responsive design adjustments for various screen sizes in `frontend/src/styles/globals.css` and components.
-- [ ] T066 [P] Implement dark/light mode toggle functionality in `frontend/src/components/ThemeToggle.tsx`.
-- [ ] T067 Implement keyboard shortcuts for power users (e.g., upload, validate) in `frontend/src/utils/keyboardShortcuts.ts`.
-- [ ] T068 Review and implement GDPR compliance best practices across the application.
-- [ ] T069 Configure robust CSP headers for `frontend/` to prevent XSS.
-- [ ] T070 Conduct comprehensive unit testing for `backend/` services and `frontend/` components, ensuring >80% unit test coverage.
-- [ ] T071 Conduct integration testing for frontend-backend communication and validation pipeline.
-- [ ] T072 Conduct end-to-end testing for critical user journeys.
-- [ ] T073 Refine Vercel deployment pipeline for continuous integration and delivery.
+- [x] T060 [P] Implement URL-based file import functionality in `frontend/src/utils/fileUtils.ts` and integrate into `frontend/src/pages/index.tsx`
+- [x] T061 [P] Implement copy shareable validation summary functionality in `frontend/src/components/ValidationActions.tsx`
+- [x] T062 [P] Implement export annotated XML with error comments in `frontend/src/components/ValidationActions.tsx`
+- [x] T063 [P] Implement inline tooltips for technical terms across `frontend/src/components/`
+- [x] T064 Conduct accessibility audit and implement WCAG 2.1 Level AA compliance fixes across `frontend/`
+- [x] T065 [P] Implement responsive design adjustments for various screen sizes in `frontend/src/styles/globals.css` and components.
+- [x] T066 [P] Implement dark/light mode toggle functionality in `frontend/src/components/ThemeToggle.tsx`.
+- [x] T067 Implement keyboard shortcuts for power users (e.g., upload, validate) in `frontend/src/utils/keyboardShortcuts.ts`.
+- [x] T068 Review and implement GDPR compliance best practices across the application.
+- [x] T069 Configure robust CSP headers for `frontend/` to prevent XSS.
+- [x] T070 Conduct comprehensive unit testing for `backend/` services and `frontend/` components, ensuring >80% unit test coverage.
+- [x] T071 Conduct integration testing for frontend-backend communication and validation pipeline.
+- [x] T072 Conduct end-to-end testing for critical user journeys.
+- [x] T073 Refine Vercel deployment pipeline for continuous integration and delivery.
 
-- [ ] T074 Define and implement UI for empty states (e.g., initial dashboard view before any file upload) in `frontend/src/pages/index.tsx` and relevant components.
+- [x] T074 Define and implement UI for empty states (e.g., initial dashboard view before any file upload) in `frontend/src/pages/index.tsx` and relevant components.
 
 ---
 

@@ -1,6 +1,6 @@
 // frontend/src/services/validationService.ts
 
-import { ValidateRequest, ValidateResponse } from '../types/validation';
+import type { ValidateRequest, ValidateResponse } from '../types';
 
 export async function validateInvoice(request: ValidateRequest): Promise<ValidateResponse> {
   const response = await fetch('/api/validate', {
@@ -12,8 +12,16 @@ export async function validateInvoice(request: ValidateRequest): Promise<Validat
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || 'Validation failed');
+    let errorMessage = 'Validation failed';
+    try {
+      const errorData = await response.json();
+      if (typeof errorData.message === 'string' && errorData.message.trim().length > 0) {
+        errorMessage = errorData.message;
+      }
+    } catch (parseError) {
+      // Ignore JSON parsing errors and fall back to the default message.
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();
