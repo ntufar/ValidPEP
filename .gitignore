@@ -88,3 +88,4 @@ Thumbs.db
 .fusebox/
 .parcel-cache/
 coverage/
+backend/docs/

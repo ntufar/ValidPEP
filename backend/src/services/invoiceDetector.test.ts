@@ -22,10 +22,10 @@ mockedParseXml.mockImplementation((xmlString: string) => {
     }),
     namespace: jest.fn(() => {
       if (xmlString.includes('urn:oasis:names:specification:ubl:schema:xsd:Invoice-2')) {
-        return { href: 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2' };
+        return { href: () => 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2' };
       }
       if (xmlString.includes('urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100')) {
-        return { href: 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100' };
+        return { href: () => 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100' };
       }
       return null;
     }),

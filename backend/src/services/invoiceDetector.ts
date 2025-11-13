@@ -21,7 +21,9 @@ export function detectInvoiceFormat(xmlString: string): InvoiceFormat {
       'urn:oasis:names:specification:ubl:schema:xsd:Order-2',
     ];
 
-    if (ublNamespaces.includes(root.namespace()?.href || '') || ['Invoice', 'CreditNote', 'Order'].includes(root.name())) {
+    const namespaceHref = root.namespace()?.href() ?? '';
+
+    if (ublNamespaces.includes(namespaceHref) || ['Invoice', 'CreditNote', 'Order'].includes(root.name())) {
       return InvoiceFormat.UBL;
     }
 
@@ -32,7 +34,7 @@ export function detectInvoiceFormat(xmlString: string): InvoiceFormat {
       'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100',
     ];
 
-    if (ciiNamespaces.includes(root.namespace()?.href || '') || root.name() === 'CrossIndustryInvoice') {
+    if (ciiNamespaces.includes(namespaceHref) || root.name() === 'CrossIndustryInvoice') {
       return InvoiceFormat.CII;
     }
 
@@ -65,16 +67,17 @@ export function detectInvoiceCountry(xmlString: string): string | undefined {
 
     // Try to detect UBL country
     const ublCountryNode = xmlDoc.get('//cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:Country/cbc:IdentificationCode', namespaces);
-    if (ublCountryNode) {
-      countryCode = ublCountryNode.text();
-    }
+    const getTextContent = (node: libxmljs2.Node | null | undefined): string | undefined =>
+      (node && typeof (node as libxmljs2.Element).text === 'function')
+        ? (node as libxmljs2.Element).text()
+        : undefined;
+
+    countryCode = getTextContent(ublCountryNode);
 
     // If not UBL, try to detect CII country
     if (!countryCode) {
       const ciiCountryNode = xmlDoc.get('//ram:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID', namespaces);
-      if (ciiCountryNode) {
-        countryCode = ciiCountryNode.text();
-      }
+      countryCode = getTextContent(ciiCountryNode);
     }
 
     return countryCode?.toUpperCase(); // Return uppercase country code

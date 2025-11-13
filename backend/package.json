@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest"
+    "test": "jest",
+    "prepare-docs": "node scripts/prepare-docs.mjs",
+    "vercel-build": "npm run prepare-docs && next build"
   },
   "dependencies": {
     "libxmljs2": "^0.37.0",
