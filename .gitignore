@@ -9,6 +9,7 @@ lerna-debug.log*
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 .report/
+
 # Caching
 .next/
 .nuxt/
@@ -24,14 +25,16 @@ node_modules/
 # Production artifacts
 build/
 dist/
-.next/
-.nuxt/
 .output/
 .vercel/output/
 .vercel/cache/
 
 # Vercel
 .vercel/
+
+# Next.js build output (should not be uploaded)
+**/.next/
+backend/.next/
 
 # Misc
 .DS_Store
@@ -81,11 +84,5 @@ Thumbs.db
 .yarnrc
 .yarn-integrity
 .cache/
-.next/
-.nuxt/
-.vuepress/dist
-.serverless/
-.fusebox/
-.parcel-cache/
 coverage/
 backend/docs/
