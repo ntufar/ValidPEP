@@ -35,7 +35,7 @@ export function validateXmlAgainstXsd(
         issues: errors.map(err => ({
           severity: IssueSeverity.Error,
           message: err.message,
-          lineNumber: err.line,
+          lineNumber: err.line ?? undefined,
           // libxmljs2 does not directly provide xpath for XSD validation errors
           xpath: undefined,
         })),
