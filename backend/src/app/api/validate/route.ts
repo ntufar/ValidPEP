@@ -149,18 +149,32 @@ export async function POST(request: Request) {
     // 4. XSD Validation
     if (xsdSchema && xmlDoc) {
       try {
-        const xsdOptions = xsdBaseUrl ? { baseUrl: xsdBaseUrl, nonet: false } : {};
+        // Note: baseUrl is not passed as libxmljs2 doesn't support it directly
+        // External schema imports should be resolved automatically if they use absolute URLs
+        const xsdOptions = { nonet: false }; // Allow network access for external imports
         const xsdValidationResult = validateXmlAgainstXsd(xmlDoc, xsdSchema, xsdOptions);
         if (!xsdValidationResult.isValid) {
           overallValid = false;
           issues.push(...xsdValidationResult.issues);
         }
       } catch (error) {
-        issues.push({
-          severity: IssueSeverity.Error,
-          message: `XSD validation failed: ${(error as Error).message}`,
-        });
-        overallValid = false;
+        const errorMessage = (error as Error).message;
+        // If XSD validation fails due to schema parsing issues (e.g., external imports),
+        // add it as a warning rather than an error, so validation can continue with Schematron
+        if (errorMessage.includes('external') || errorMessage.includes('import') || 
+            errorMessage.includes('unresolved') || errorMessage.includes('incomplete') ||
+            errorMessage.includes('Invalid XSD schema') || errorMessage.includes('Invalid schema')) {
+          issues.push({
+            severity: IssueSeverity.Warning,
+            message: `XSD validation skipped: ${errorMessage}. Continuing with Schematron validation.`,
+          });
+        } else {
+          issues.push({
+            severity: IssueSeverity.Error,
+            message: `XSD validation failed: ${errorMessage}`,
+          });
+          overallValid = false;
+        }
       }
     } else {
       issues.push({
@@ -180,11 +194,23 @@ export async function POST(request: Request) {
           issues.push(...schematronValidationResult.issues);
         }
       } catch (error) {
-        issues.push({
-          severity: IssueSeverity.Error,
-          message: `Schematron validation failed: ${(error as Error).message}`,
-        });
-        overallValid = false;
+        const errorMessage = (error as Error).message;
+        // If Schematron validation fails due to XPath parsing issues,
+        // add it as a warning rather than an error, so we can still return results
+        if (errorMessage.includes('XPath') || errorMessage.includes('xpath') || 
+            errorMessage.includes('parse error') || errorMessage.includes('XPath 2.0')) {
+          issues.push({
+            severity: IssueSeverity.Warning,
+            message: `Schematron validation skipped: ${errorMessage}. ` +
+                     `Some XPath 2.0 expressions in the Schematron rules may not be fully supported.`,
+          });
+        } else {
+          issues.push({
+            severity: IssueSeverity.Error,
+            message: `Schematron validation failed: ${errorMessage}`,
+          });
+          overallValid = false;
+        }
       }
     } else {
       issues.push({

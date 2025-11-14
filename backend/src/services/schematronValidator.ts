@@ -66,7 +66,22 @@ export async function validateXmlAgainstSchematron(
     const isValid = validation.errors.length === 0;
     return { isValid, issues };
   } catch (error) {
-    console.error('Schematron validation error:', error);
-    throw new Error('Failed to validate XML against Schematron: ' + (error as Error).message);
+    const errorMessage = (error as Error).message;
+    console.error('Schematron validation error:', {
+      error: errorMessage,
+      errorName: (error as Error).name,
+      stack: (error as Error).stack,
+    });
+
+    // Provide more context for XPath parsing errors
+    if (errorMessage.includes('XPath') || errorMessage.includes('xpath') || errorMessage.includes('parse error')) {
+      throw new Error(
+        `Failed to validate XML against Schematron: ${errorMessage}. ` +
+        `This may be due to unsupported XPath expressions in the Schematron rules. ` +
+        `The Schematron file uses XPath 2.0 (xslt2 query binding), which may not be fully supported.`
+      );
+    }
+
+    throw new Error(`Failed to validate XML against Schematron: ${errorMessage}`);
   }
 }
