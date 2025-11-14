@@ -38,15 +38,9 @@ export function validateXmlAgainstXsd(
       xsdDoc = libxmljs2.parseXml(xsdSchema, xsdParseOptions);
     } catch (parseError) {
       const errorMessage = (parseError as Error).message;
-      console.error('XSD schema parsing failed:', {
-        error: errorMessage,
-        errorName: (parseError as Error).name,
-        hasBaseUrl: !!parserOptions.baseUrl,
-        baseUrl: parserOptions.baseUrl,
-      });
       
       // If parsing fails, it might be due to external imports that can't be resolved
-      // Provide a more helpful error message
+      // This will be caught by the route handler and converted to a warning
       if (errorMessage.includes('import') || errorMessage.includes('include') || 
           errorMessage.includes('schemaLocation') || errorMessage.includes('Invalid')) {
         throw new Error(
@@ -65,13 +59,10 @@ export function validateXmlAgainstXsd(
       isValid = xmlDoc.validate(xsdDoc);
     } catch (validateError) {
       const errorMessage = (validateError as Error).message;
-      console.error('XSD validation method failed:', {
-        error: errorMessage,
-        errorName: (validateError as Error).name,
-      });
       
       // If validate() throws "Invalid XSD schema", it means the schema document
       // is incomplete (likely due to unresolved external imports)
+      // This will be caught by the route handler and converted to a warning
       if (errorMessage.includes('Invalid XSD schema') || errorMessage.includes('Invalid schema')) {
         throw new Error(
           `XSD schema is invalid or incomplete: ${errorMessage}. ` +
@@ -86,7 +77,7 @@ export function validateXmlAgainstXsd(
     
     if (!isValid) {
       const errors = xmlDoc.validationErrors;
-      console.error('XSD validation errors:', errors);
+      // These are actual validation errors, not schema parsing issues
       return {
         isValid: false,
         issues: errors.map(err => ({
@@ -100,7 +91,8 @@ export function validateXmlAgainstXsd(
     }
     return { isValid: true, issues: [] };
   } catch (error) {
-    console.error('XSD schema parsing or validation error:', error);
+    // Error will be caught and handled by the route handler
+    // which will convert known issues (external imports, etc.) to warnings
     const errorMessage = (error as Error).message;
     throw new Error(`Failed to validate XML against XSD: ${errorMessage}`);
   }

@@ -67,13 +67,9 @@ export async function validateXmlAgainstSchematron(
     return { isValid, issues };
   } catch (error) {
     const errorMessage = (error as Error).message;
-    console.error('Schematron validation error:', {
-      error: errorMessage,
-      errorName: (error as Error).name,
-      stack: (error as Error).stack,
-    });
 
     // Provide more context for XPath parsing errors
+    // These will be caught by the route handler and converted to warnings
     if (errorMessage.includes('XPath') || errorMessage.includes('xpath') || errorMessage.includes('parse error')) {
       throw new Error(
         `Failed to validate XML against Schematron: ${errorMessage}. ` +
