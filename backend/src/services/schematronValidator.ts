@@ -1,7 +1,37 @@
 // backend/src/services/schematronValidator.ts
 
-import { validate as runSchematronValidate, type IValidationResult } from 'schematron-runner';
+import { type IValidationResult } from 'schematron-runner';
 import { Issue, IssueSeverity } from '../types/validation';
+
+// Lazy load schematron-runner to catch Java initialization errors
+let schematronRunnerModule: any = null;
+async function getSchematronRunner() {
+  if (!schematronRunnerModule) {
+    try {
+      schematronRunnerModule = await import('schematron-runner');
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      const errorCode = (error as any)?.code;
+      const errorSyscall = (error as any)?.syscall;
+      
+      // If Java is not available, throw a more descriptive error
+      if (
+        errorCode === 'ENOENT' ||
+        errorSyscall === 'spawn javac' ||
+        errorMessage.includes('spawn javac') ||
+        errorMessage.includes('javac')
+      ) {
+        throw new Error(
+          'Schematron validation unavailable: Java runtime not available in this environment. ' +
+          'This is common in serverless environments like Vercel. ' +
+          'XSD validation will continue, but Schematron rules cannot be applied without a Java runtime.'
+        );
+      }
+      throw error;
+    }
+  }
+  return schematronRunnerModule;
+}
 
 function mapValidationResult(entry: IValidationResult, severity: IssueSeverity): Issue {
   const message = entry.description?.trim().length
@@ -18,7 +48,17 @@ function mapValidationResult(entry: IValidationResult, severity: IssueSeverity):
   };
 }
 
-type CompletedValidation = Awaited<ReturnType<typeof runSchematronValidate>>;
+// Type for completed validation - will be inferred from the actual validation call
+type CompletedValidation = {
+  errors: IValidationResult[];
+  warnings: IValidationResult[];
+  ignored: Array<{
+    assertionId: string;
+    errorMessage: string | Array<{ errorMessage: string }> | { errorMessage: string };
+    test?: string;
+    simplifiedTest?: string;
+  }>;
+};
 type IgnoredResult = CompletedValidation['ignored'][number];
 
 function formatIgnoredMessage(message: IgnoredResult['errorMessage']): string {
@@ -48,6 +88,14 @@ export async function validateXmlAgainstSchematron(
   schematronRules: string
 ): Promise<{ isValid: boolean; issues: Issue[] }> {
   try {
+    // Lazy load schematron-runner module
+    const schematronModule = await getSchematronRunner();
+    const runSchematronValidate = schematronModule.validate || schematronModule.default?.validate || schematronModule.default;
+    
+    if (typeof runSchematronValidate !== 'function') {
+      throw new Error('Failed to load Schematron validator: validate function not found');
+    }
+    
     const validation = await runSchematronValidate(xmlString, schematronRules);
     const issues: Issue[] = [];
 
@@ -67,6 +115,25 @@ export async function validateXmlAgainstSchematron(
     return { isValid, issues };
   } catch (error) {
     const errorMessage = (error as Error).message;
+    const errorCode = (error as any)?.code;
+    const errorSyscall = (error as any)?.syscall;
+
+    // Handle Java-related errors (ENOENT for javac, Java not found, etc.)
+    // These occur in serverless environments where Java is not available
+    if (
+      errorCode === 'ENOENT' ||
+      errorSyscall === 'spawn javac' ||
+      errorMessage.includes('spawn javac') ||
+      errorMessage.includes('javac') ||
+      errorMessage.includes('Java') ||
+      errorMessage.includes('java')
+    ) {
+      throw new Error(
+        `Schematron validation unavailable: Java runtime not available in this environment. ` +
+        `This is common in serverless environments like Vercel. ` +
+        `XSD validation will continue, but Schematron rules cannot be applied without a Java runtime.`
+      );
+    }
 
     // Provide more context for XPath parsing errors
     // These will be caught by the route handler and converted to warnings

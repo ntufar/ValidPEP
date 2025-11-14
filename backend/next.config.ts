@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["libxmljs2"],
   /* config options here */
   async headers() {
     return [

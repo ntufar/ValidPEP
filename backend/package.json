@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
-    "libxmljs2": "^0.37.0",
+    "@xmldom/xmldom": "^0.8.11",
     "monaco-editor": "^0.54.0",
     "next": "16.0.2",
     "react": "19.2.0",
@@ -21,6 +21,8 @@
     "react-dropzone": "^14.3.8",
     "saxon-js": "^2.7.0",
     "schematron-runner": "^1.0.0",
+    "xpath": "^0.0.33",
+    "xsd-schema-validator": "^0.6.0",
     "xslt3": "^2.7.0"
   },
   "devDependencies": {
@@ -29,7 +31,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@xmldom/xmldom": "^0.8.11",
     "eslint": "^9",
     "eslint-config-next": "16.0.2",
     "jest": "^30.2.0",

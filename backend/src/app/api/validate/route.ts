@@ -149,10 +149,10 @@ export async function POST(request: Request) {
     // 4. XSD Validation
     if (xsdSchema && xmlDoc) {
       try {
-        // Note: baseUrl is not passed as libxmljs2 doesn't support it directly
+        // Note: baseUrl is not passed as xsd-schema-validator doesn't support it directly
         // External schema imports should be resolved automatically if they use absolute URLs
         const xsdOptions = { nonet: false }; // Allow network access for external imports
-        const xsdValidationResult = validateXmlAgainstXsd(xmlDoc, xsdSchema, xsdOptions);
+        const xsdValidationResult = await validateXmlAgainstXsd(xmlDoc, xsdSchema, xsdOptions);
         if (!xsdValidationResult.isValid) {
           overallValid = false;
           issues.push(...xsdValidationResult.issues);
@@ -195,9 +195,28 @@ export async function POST(request: Request) {
         }
       } catch (error) {
         const errorMessage = (error as Error).message;
+        const errorCode = (error as any)?.code;
+        const errorSyscall = (error as any)?.syscall;
+        
+        // If Schematron validation fails due to Java not being available (serverless environments),
+        // add it as a warning rather than an error, so we can still return XSD validation results
+        if (
+          errorCode === 'ENOENT' ||
+          errorSyscall === 'spawn javac' ||
+          errorMessage.includes('spawn javac') ||
+          errorMessage.includes('javac') ||
+          errorMessage.includes('Java runtime not available') ||
+          errorMessage.includes('Java') ||
+          errorMessage.includes('serverless environments')
+        ) {
+          issues.push({
+            severity: IssueSeverity.Warning,
+            message: `Schematron validation skipped: ${errorMessage}`,
+          });
+        }
         // If Schematron validation fails due to XPath parsing issues,
         // add it as a warning rather than an error, so we can still return results
-        if (errorMessage.includes('XPath') || errorMessage.includes('xpath') || 
+        else if (errorMessage.includes('XPath') || errorMessage.includes('xpath') || 
             errorMessage.includes('parse error') || errorMessage.includes('XPath 2.0')) {
           issues.push({
             severity: IssueSeverity.Warning,

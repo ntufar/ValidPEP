@@ -1,12 +1,28 @@
 // backend/src/services/invoiceDetector.ts
 
-import libxmljs2 from 'libxmljs2';
+import { DOMParser } from '@xmldom/xmldom';
+import * as xpath from 'xpath';
 import { InvoiceFormat } from '../types/validation';
 
 export function detectInvoiceFormat(xmlString: string): InvoiceFormat {
   try {
-    const xmlDoc = libxmljs2.parseXml(xmlString);
-    const root = xmlDoc.root();
+    const parser = new DOMParser({
+      locator: {},
+      errorHandler: {
+        warning: () => {},
+        error: () => {},
+        fatalError: () => {},
+      },
+    });
+    const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+    
+    // Check for parsing errors
+    const parserError = xmlDoc.getElementsByTagName('parsererror');
+    if (parserError.length > 0) {
+      return InvoiceFormat.Auto;
+    }
+    
+    const root = xmlDoc.documentElement;
 
     if (!root) {
       return InvoiceFormat.Auto; // Cannot determine format without a root element
@@ -21,9 +37,10 @@ export function detectInvoiceFormat(xmlString: string): InvoiceFormat {
       'urn:oasis:names:specification:ubl:schema:xsd:Order-2',
     ];
 
-    const namespaceHref = root.namespace()?.href() ?? '';
+    const namespaceHref = root.namespaceURI ?? '';
+    const localName = root.localName || root.nodeName;
 
-    if (ublNamespaces.includes(namespaceHref) || ['Invoice', 'CreditNote', 'Order'].includes(root.name())) {
+    if (ublNamespaces.includes(namespaceHref) || ['Invoice', 'CreditNote', 'Order'].includes(localName)) {
       return InvoiceFormat.UBL;
     }
 
@@ -34,7 +51,7 @@ export function detectInvoiceFormat(xmlString: string): InvoiceFormat {
       'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100',
     ];
 
-    if (ciiNamespaces.includes(namespaceHref) || root.name() === 'CrossIndustryInvoice') {
+    if (ciiNamespaces.includes(namespaceHref) || localName === 'CrossIndustryInvoice') {
       return InvoiceFormat.CII;
     }
 
@@ -49,8 +66,23 @@ export function detectInvoiceFormat(xmlString: string): InvoiceFormat {
 
 export function detectInvoiceCountry(xmlString: string): string | undefined {
   try {
-    const xmlDoc = libxmljs2.parseXml(xmlString);
-    const root = xmlDoc.root();
+    const parser = new DOMParser({
+      locator: {},
+      errorHandler: {
+        warning: () => {},
+        error: () => {},
+        fatalError: () => {},
+      },
+    });
+    const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+    
+    // Check for parsing errors
+    const parserError = xmlDoc.getElementsByTagName('parsererror');
+    if (parserError.length > 0) {
+      return undefined;
+    }
+    
+    const root = xmlDoc.documentElement;
 
     if (!root) {
       return undefined;
@@ -66,18 +98,23 @@ export function detectInvoiceCountry(xmlString: string): string | undefined {
     let countryCode: string | undefined;
 
     // Try to detect UBL country
-    const ublCountryNode = xmlDoc.get('//cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:Country/cbc:IdentificationCode', namespaces);
-    const getTextContent = (node: libxmljs2.Node | null | undefined): string | undefined =>
-      (node && typeof (node as libxmljs2.Element).text === 'function')
-        ? (node as libxmljs2.Element).text()
-        : undefined;
+    const select = xpath.useNamespaces(namespaces);
+    const ublCountryNode = select(
+      '//cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cac:Country/cbc:IdentificationCode',
+      xmlDoc,
+      true
+    ) as Node | null;
 
-    countryCode = getTextContent(ublCountryNode);
+    countryCode = ublCountryNode?.textContent?.trim();
 
     // If not UBL, try to detect CII country
     if (!countryCode) {
-      const ciiCountryNode = xmlDoc.get('//ram:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID', namespaces);
-      countryCode = getTextContent(ciiCountryNode);
+      const ciiCountryNode = select(
+        '//ram:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID',
+        xmlDoc,
+        true
+      ) as Node | null;
+      countryCode = ciiCountryNode?.textContent?.trim();
     }
 
     return countryCode?.toUpperCase(); // Return uppercase country code

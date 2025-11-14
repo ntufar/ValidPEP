@@ -3,58 +3,7 @@
 import { detectInvoiceFormat, detectInvoiceCountry } from './invoiceDetector';
 import { InvoiceFormat } from '../types/validation';
 
-jest.mock('libxmljs2', () => ({
-  __esModule: true,
-  default: {
-    parseXml: jest.fn(),
-  },
-}));
-
-const mockedParseXml = jest.requireMock('libxmljs2').default.parseXml as jest.Mock;
-
-mockedParseXml.mockImplementation((xmlString: string) => {
-  const mockRoot = {
-    name: jest.fn(() => {
-      if (xmlString.includes('<Invoice')) return 'Invoice';
-      if (xmlString.includes('<rsm:CrossIndustryInvoice')) return 'CrossIndustryInvoice';
-      if (xmlString.includes('<UnknownDocument')) return 'UnknownDocument';
-      return 'root';
-    }),
-    namespace: jest.fn(() => {
-      if (xmlString.includes('urn:oasis:names:specification:ubl:schema:xsd:Invoice-2')) {
-        return { href: () => 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2' };
-      }
-      if (xmlString.includes('urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100')) {
-        return { href: () => 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100' };
-      }
-      return null;
-    }),
-  };
-
-  const mockDocument = {
-    root: jest.fn(() => mockRoot),
-    get: jest.fn((xpath: string) => {
-      if (xpath.includes('cbc:IdentificationCode') && xmlString.includes('<cbc:IdentificationCode>NO</cbc:IdentificationCode>')) {
-        return { text: jest.fn(() => 'NO') };
-      }
-      if (xpath.includes('ram:CountryID') && xmlString.includes('<ram:CountryID>SE</ram:CountryID>')) {
-        return { text: jest.fn(() => 'SE') };
-      }
-      return null;
-    }),
-  };
-
-  if (xmlString.includes('Invalid XML')) {
-    throw new Error('Invalid XML');
-  }
-
-  return mockDocument;
-});
-
 describe('invoiceDetector', () => {
-  beforeEach(() => {
-    mockedParseXml.mockClear();
-  });
 
   describe('detectInvoiceFormat', () => {
     it('should detect UBL format correctly', () => {
