@@ -217,14 +217,29 @@ export async function POST(request: Request) {
     // 5. Schematron Validation
     if (schematronRules) {
       try {
-        // Dynamically import schematronValidator to avoid triggering Java spawn during module init
-        const schematronValidatorModule = await import('../../../services/schematronValidator');
-        const validateXmlAgainstSchematron = schematronValidatorModule.validateXmlAgainstSchematron;
+        // Check if Java is available before attempting to import schematronValidator
+        // This prevents the module from trying to spawn Java during initialization
+        const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUTION_ENV);
+        const javaAvailable = process.env.JAVA_AVAILABLE === 'true';
         
-        const schematronValidationResult = await validateXmlAgainstSchematron(xmlString, schematronRules);
-        if (!schematronValidationResult.isValid) {
-          overallValid = false;
-          issues.push(...schematronValidationResult.issues);
+        if (isServerless && !javaAvailable) {
+          // Skip Schematron validation in serverless environments without Java
+          issues.push({
+            severity: IssueSeverity.Warning,
+            message: 'Schematron validation skipped: Java runtime is not available in this serverless environment. ' +
+                     'XSD validation has been completed successfully. ' +
+                     'To enable Schematron validation, set JAVA_AVAILABLE=true and ensure Java is installed.',
+          });
+        } else {
+          // Dynamically import schematronValidator only if Java might be available
+          const schematronValidatorModule = await import('../../../services/schematronValidator');
+          const validateXmlAgainstSchematron = schematronValidatorModule.validateXmlAgainstSchematron;
+          
+          const schematronValidationResult = await validateXmlAgainstSchematron(xmlString, schematronRules);
+          if (!schematronValidationResult.isValid) {
+            overallValid = false;
+            issues.push(...schematronValidationResult.issues);
+          }
         }
       } catch (error) {
         const errorMessage = (error as Error).message;
