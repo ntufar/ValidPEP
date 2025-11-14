@@ -12,25 +12,30 @@ const MAX_XML_BYTES = 10 * 1024 * 1024; // 10 MB
 
 // Handle uncaught exceptions from Java-related spawns during module initialization
 // This catches errors that occur when schematron-runner or its dependencies try to spawn Java
+// Note: This handler prevents the app from crashing, but the error may still be logged by Next.js/Turbopack
 if (typeof process !== 'undefined' && process.listeners) {
-  process.once('uncaughtException', (error: Error & { code?: string; syscall?: string }) => {
-    // Only handle Java-related spawn errors, let other errors propagate
-    if (
-      error.code === 'ENOENT' &&
-      (error.syscall === 'spawn javac' || error.message?.includes('spawn javac'))
-    ) {
-      // Log but don't crash - this will be handled when Schematron validation is attempted
-      logger.warn('Java runtime not available - Schematron validation will be skipped', {
-        code: error.code,
-        syscall: error.syscall,
-        message: error.message,
-      });
-      // Don't rethrow - we'll handle this gracefully when validation is attempted
-      return;
-    }
-    // Re-throw other uncaught exceptions
-    throw error;
-  });
+  // Use 'uncaughtException' instead of 'once' to handle multiple errors
+  const existingHandler = process.listeners('uncaughtException').length;
+  if (existingHandler === 0) {
+    process.on('uncaughtException', (error: Error & { code?: string; syscall?: string }) => {
+      // Only handle Java-related spawn errors silently
+      if (
+        error.code === 'ENOENT' &&
+        (error.syscall === 'spawn javac' || error.message?.includes('spawn javac'))
+      ) {
+        // Log as debug/warn but don't crash - this will be handled gracefully when Schematron validation is attempted
+        logger.warn('Java runtime not available - Schematron validation will be skipped', {
+          code: error.code,
+          syscall: error.syscall,
+          message: error.message,
+        });
+        // Don't rethrow - we'll handle this gracefully when validation is attempted
+        return;
+      }
+      // Re-throw other uncaught exceptions to let Next.js handle them
+      throw error;
+    });
+  }
 }
 
 export async function POST(request: Request) {

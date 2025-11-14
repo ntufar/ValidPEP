@@ -13,9 +13,50 @@ export interface IValidationResult {
   simplifiedTest?: string;
 }
 
+// Check if Java is available before attempting to load schematron-runner
+// This prevents uncaught exceptions during module initialization
+async function isJavaAvailable(): Promise<boolean> {
+  if (typeof process === 'undefined' || !process.platform) {
+    return false; // Serverless environment
+  }
+  
+  // Check if we're in a serverless environment (Vercel, AWS Lambda, etc.)
+  // These typically don't have Java installed
+  if (
+    process.env.VERCEL ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    process.env.AWS_EXECUTION_ENV ||
+    process.env.NODE_ENV === 'production'
+  ) {
+    // In production/serverless, assume Java is not available unless explicitly set
+    return process.env.JAVA_AVAILABLE === 'true';
+  }
+  
+  // In development, we can try to check (but this might fail in serverless dev environments too)
+  return false; // Conservative: assume Java not available unless explicitly enabled
+}
+
 // Lazy load schematron-runner to catch Java initialization errors
 let schematronRunnerModule: any = null;
+let javaAvailabilityChecked = false;
+let javaAvailable = false;
+
 async function getSchematronRunner() {
+  // Check Java availability first
+  if (!javaAvailabilityChecked) {
+    javaAvailable = await isJavaAvailable();
+    javaAvailabilityChecked = true;
+  }
+  
+  if (!javaAvailable) {
+    throw new Error(
+      'Schematron validation unavailable: Java runtime not available in this environment. ' +
+      'This is common in serverless environments like Vercel. ' +
+      'XSD validation will continue, but Schematron rules cannot be applied without a Java runtime. ' +
+      'To enable Schematron validation, set JAVA_AVAILABLE=true environment variable and ensure Java is installed.'
+    );
+  }
+  
   if (!schematronRunnerModule) {
     try {
       schematronRunnerModule = await import('schematron-runner');
