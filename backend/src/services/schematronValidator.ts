@@ -1,7 +1,17 @@
 // backend/src/services/schematronValidator.ts
 
-import { type IValidationResult } from 'schematron-runner';
 import { Issue, IssueSeverity } from '../types/validation';
+
+// Define the validation result type locally to avoid importing from schematron-runner
+// which might trigger module initialization that requires Java
+export interface IValidationResult {
+  assertionId: string;
+  description?: string;
+  path?: string;
+  line?: number;
+  test?: string;
+  simplifiedTest?: string;
+}
 
 // Lazy load schematron-runner to catch Java initialization errors
 let schematronRunnerModule: any = null;
