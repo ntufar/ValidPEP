@@ -140,7 +140,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-6xl flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">ValidPEP Validation Dashboard</h1>
+        <h1 className="text-4xl font-bold">ValidPEP PEPPOL Validation Dashboard</h1>
         <ThemeToggle />
       </div>
       <div className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-6xl">
