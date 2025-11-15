@@ -163,14 +163,28 @@ export async function POST(request: Request) {
         }
       } catch (error) {
         const errorMessage = (error as Error).message;
-        // If XSD validation fails due to schema parsing issues (e.g., external imports),
-        // add it as a warning rather than an error, so validation can continue with Schematron
-        if (errorMessage.includes('external') || errorMessage.includes('import') || 
-            errorMessage.includes('unresolved') || errorMessage.includes('incomplete') ||
-            errorMessage.includes('Invalid XSD schema') || errorMessage.includes('Invalid schema')) {
+        // If XSD validation fails due to Java unavailability, schema parsing issues (e.g., external imports),
+        // or other non-critical issues, add it as a warning rather than an error,
+        // so validation can continue with other checks
+        if (
+          errorMessage.includes('javac') ||
+          errorMessage.includes('java') ||
+          errorMessage.includes('JDK') ||
+          errorMessage.includes('JAVA_HOME') ||
+          errorMessage.includes('ENOENT') ||
+          errorMessage.includes('spawn') ||
+          errorMessage.includes('XSD validator unavailable') ||
+          errorMessage.includes('Java runtime is required') ||
+          errorMessage.includes('external') ||
+          errorMessage.includes('import') ||
+          errorMessage.includes('unresolved') ||
+          errorMessage.includes('incomplete') ||
+          errorMessage.includes('Invalid XSD schema') ||
+          errorMessage.includes('Invalid schema')
+        ) {
           issues.push({
             severity: IssueSeverity.Warning,
-            message: `XSD validation skipped: ${errorMessage}. Continuing with Schematron validation.`,
+            message: `XSD validation skipped: ${errorMessage}. Continuing with other validation checks.`,
           });
         } else {
           issues.push({
