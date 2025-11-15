@@ -33,6 +33,8 @@ def _try_oasis_url(schema_location: str) -> Optional[str]:
         return f'{OASIS_UBL_BASE}common/UBL-UnqualifiedDataTypes-2.1.xsd'
     elif 'CCTS_CCT_SchemaModule-2.1.xsd' in schema_location:
         return f'{OASIS_UBL_BASE}common/CCTS_CCT_SchemaModule-2.1.xsd'
+    elif 'UBL-ExtensionContentDataType-2.1.xsd' in schema_location:
+        return f'{OASIS_UBL_BASE}common/UBL-ExtensionContentDataType-2.1.xsd'
     elif 'common/' in schema_location:
         # Try to extract filename and construct OASIS URL
         filename = schema_location.split('/')[-1]
@@ -158,11 +160,105 @@ def validate_xml_against_xsd(
         xsd_root = xsd_doc.getroot()
         
         # Resolve imported schema locations to reliable URLs (prefer OASIS over PEPPOL)
-        # Build locations mapping: namespace -> URL
+        # Build locations mapping: namespace -> local file path (download schemas to temp files)
+        # Create a temp directory structure that preserves relative paths
         locations = {}
         xsd_ns = '{http://www.w3.org/2001/XMLSchema}'
+        fetched_schemas = set()  # Track which schemas we've already fetched to avoid loops
+        temp_files = []  # Keep track of temp files for cleanup
+        temp_dirs = []  # Keep track of temp directories for cleanup
+        import tempfile
+        import os
         
-        # Collect all imports (including nested ones we'll discover)
+        # Create a temp directory for schemas with proper structure
+        temp_base = tempfile.mkdtemp(prefix='peppol_xsd_')
+        temp_dirs.append(temp_base)
+        temp_common_dir = os.path.join(temp_base, 'common')
+        os.makedirs(temp_common_dir, exist_ok=True)
+        
+        def fetch_nested_imports(schema_content: str, base_url_for_imports: str, depth: int = 0):
+            """Recursively fetch nested imports from a schema (max depth 5 to avoid infinite loops)"""
+            if depth > 5:
+                return  # Prevent infinite recursion
+            
+            try:
+                nested_doc = etree.parse(BytesIO(schema_content.encode('utf-8')))
+                nested_root = nested_doc.getroot()
+                
+                # Check both import and include elements
+                for import_elem in nested_root.findall(f'.//{xsd_ns}import') + nested_root.findall(f'.//{xsd_ns}include'):
+                    namespace = import_elem.get('namespace')
+                    schema_location = import_elem.get('schemaLocation')
+                    
+                    # For include, namespace might be None, use schemaLocation directly
+                    if not namespace and schema_location:
+                        # Try to resolve include - these need to be in the same directory as the including schema
+                        # Resolve relative to the base URL
+                        from urllib.parse import urljoin
+                        if base_url_for_imports:
+                            resolved_url = urljoin(base_url_for_imports, schema_location)
+                        else:
+                            resolved_url = _resolve_schema_location('', schema_location, base_url_for_imports, local_base_path)
+                        
+                        if resolved_url and not resolved_url.startswith('file://'):
+                            try:
+                                response = requests.get(resolved_url, timeout=5, headers={'User-Agent': 'ValidPEP/1.0'})
+                                if response.status_code == 200:
+                                    # For includes, save to same directory as the including schema
+                                    # Determine directory based on where the including schema would be
+                                    filename = resolved_url.split('/')[-1]
+                                    # If base_url_for_imports contains 'common/', save to common dir
+                                    if 'common/' in base_url_for_imports or 'common/' in resolved_url:
+                                        include_path = os.path.join(temp_common_dir, filename)
+                                    else:
+                                        include_path = os.path.join(temp_base, filename)
+                                    
+                                    with open(include_path, 'w', encoding='utf-8') as f:
+                                        f.write(response.text)
+                                    temp_files.append(include_path)
+                                    # Recursively fetch nested imports
+                                    fetch_nested_imports(response.text, resolved_url.rsplit('/', 1)[0] + '/', depth + 1)
+                            except requests.RequestException:
+                                pass
+                    
+                    elif namespace and schema_location and namespace not in fetched_schemas:
+                        resolved_url = _resolve_schema_location(namespace, schema_location, base_url_for_imports, local_base_path)
+                        if resolved_url:
+                            if resolved_url.startswith('file://'):
+                                # Local file - use directly
+                                if namespace not in locations:
+                                    locations[namespace] = resolved_url[7:]  # Remove file:// prefix
+                            else:
+                                # Remote URL - download to temp file in proper directory structure
+                                try:
+                                    response = requests.get(resolved_url, timeout=5, headers={'User-Agent': 'ValidPEP/1.0'})
+                                    if response.status_code == 200:
+                                        fetched_schemas.add(namespace)
+                                        # Determine where to save based on URL path
+                                        if 'common/' in resolved_url:
+                                            # Save to common subdirectory
+                                            filename = resolved_url.split('/')[-1]
+                                            temp_file_path = os.path.join(temp_common_dir, filename)
+                                        else:
+                                            # Save to base temp directory
+                                            filename = resolved_url.split('/')[-1]
+                                            temp_file_path = os.path.join(temp_base, filename)
+                                        
+                                        with open(temp_file_path, 'w', encoding='utf-8') as f:
+                                            f.write(response.text)
+                                        temp_files.append(temp_file_path)
+                                        locations[namespace] = temp_file_path
+                                        # Recursively fetch nested imports
+                                        fetch_nested_imports(response.text, resolved_url.rsplit('/', 1)[0] + '/', depth + 1)
+                                except requests.RequestException:
+                                    # If fetch fails, still add URL to locations (xmlschema will try)
+                                    if namespace not in locations:
+                                        locations[namespace] = resolved_url
+            except Exception:
+                # If parsing fails, continue
+                pass
+        
+        # Collect top-level imports
         imports_to_resolve = []
         for import_elem in xsd_root.findall(f'.//{xsd_ns}import'):
             namespace = import_elem.get('namespace')
@@ -170,35 +266,117 @@ def validate_xml_against_xsd(
             if namespace and schema_location:
                 imports_to_resolve.append((namespace, schema_location))
         
-        # Resolve each import to a reliable URL (prefer OASIS)
+        # Resolve each import and pre-fetch nested imports
         for namespace, schema_location in imports_to_resolve:
             resolved_url = _resolve_schema_location(namespace, schema_location, base_url, local_base_path)
             if resolved_url:
-                # Use OASIS URLs directly - they're more reliable than PEPPOL URLs
-                # xmlschema will fetch them, but we've verified they exist via _resolve_schema_location
                 if resolved_url.startswith('file://'):
                     locations[namespace] = resolved_url[7:]  # Remove file:// prefix
                 else:
-                    locations[namespace] = resolved_url
+                    # Pre-fetch to temp file in proper directory structure
+                    try:
+                        response = requests.get(resolved_url, timeout=5, headers={'User-Agent': 'ValidPEP/1.0'})
+                        if response.status_code == 200:
+                            fetched_schemas.add(namespace)
+                            # Determine where to save based on URL path
+                            if 'common/' in resolved_url:
+                                # Save to common subdirectory
+                                filename = resolved_url.split('/')[-1]
+                                temp_file_path = os.path.join(temp_common_dir, filename)
+                            else:
+                                # Save to base temp directory
+                                filename = resolved_url.split('/')[-1]
+                                temp_file_path = os.path.join(temp_base, filename)
+                            
+                            with open(temp_file_path, 'w', encoding='utf-8') as f:
+                                f.write(response.text)
+                            temp_files.append(temp_file_path)
+                            locations[namespace] = temp_file_path
+                            # Recursively fetch nested imports
+                            fetch_nested_imports(response.text, resolved_url.rsplit('/', 1)[0] + '/', depth=0)
+                        else:
+                            locations[namespace] = resolved_url
+                    except requests.RequestException:
+                        # If pre-fetch fails, still add URL to locations
+                        locations[namespace] = resolved_url
         
         # Suppress XMLSchemaImportWarning - we'll handle errors ourselves
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore', category=xmlschema.XMLSchemaImportWarning)
             
+            # Save main schema to temp directory too, so relative imports work
+            main_schema_path = os.path.join(temp_base, 'main.xsd')
+            with open(main_schema_path, 'w', encoding='utf-8') as f:
+                f.write(xsd_schema)
+            temp_files.append(main_schema_path)
+            
             # Use locations parameter to explicitly map namespaces to schema locations
-            # Note: xmlschema will handle nested imports automatically, resolving them from the provided locations
-            schema = xmlschema.XMLSchema(
-                xsd_schema,
-                base_url=base_url,
-                defuse='remote',
-                locations=locations if locations else None
-            )
+            # Also set base_url to temp directory so relative imports resolve correctly
+            # Add timeout protection to prevent hanging on slow/unreachable URLs
+            import threading
+            import queue as queue_module
+            
+            schema_queue = queue_module.Queue()
+            error_queue = queue_module.Queue()
+            
+            def load_schema_with_timeout():
+                try:
+                    # Build schema with all locations pre-resolved
+                    # Use main schema from temp file with temp_base as base_url
+                    # This ensures relative imports like ../common/ work correctly
+                    s = xmlschema.XMLSchema(
+                        main_schema_path,
+                        base_url=f'file://{temp_base}/',
+                        defuse='remote',
+                        locations=locations if locations else None,
+                        build=True  # Build fully to ensure all imports are resolved
+                    )
+                    schema_queue.put(s)
+                except Exception as e:
+                    error_queue.put(e)
+            
+            # Load schema in a separate thread with timeout
+            thread = threading.Thread(target=load_schema_with_timeout, daemon=True)
+            thread.start()
+            thread.join(timeout=30)  # 30 second timeout (reduced since we pre-fetch)
+            
+            if thread.is_alive():
+                # Thread still running - timeout occurred
+                # Try fallback: load without locations (incomplete but won't hang)
+                try:
+                    schema = xmlschema.XMLSchema(
+                        xsd_schema,
+                        base_url=base_url,
+                        defuse='remote',
+                        build=False
+                    )
+                except Exception:
+                    raise TimeoutError(
+                        'XSD schema loading timed out after 30 seconds. '
+                        'This may be due to slow or unreachable external schema URLs. '
+                        'Try using local schema files or check network connectivity.'
+                    )
+            
+            # Check for errors
+            if not error_queue.empty():
+                raise error_queue.get()
+            
+            # Get schema
+            if schema_queue.empty():
+                # Fallback: try without locations (may result in incomplete validation)
+                schema = xmlschema.XMLSchema(
+                    xsd_schema,
+                    base_url=base_url,
+                    defuse='remote'
+                )
+            else:
+                schema = schema_queue.get()
         
         # Validate the XML
         try:
             schema.validate(xml_string)
             # If validation passes, no exceptions are raised
-            return {
+            result = {
                 'is_valid': True,
                 'issues': []
             }
@@ -211,10 +389,25 @@ def validate_xml_against_xsd(
                 'lineNumber': getattr(e, 'line', None)
             })
             
-            return {
+            result = {
                 'is_valid': False,
                 'issues': issues
             }
+        finally:
+            # Clean up temp files and directories after validation
+            for temp_file in temp_files:
+                try:
+                    os.unlink(temp_file)
+                except Exception:
+                    pass
+            for temp_dir in temp_dirs:
+                try:
+                    import shutil
+                    shutil.rmtree(temp_dir)
+                except Exception:
+                    pass
+        
+        return result
             
     except xmlschema.XMLSchemaParseError as e:
         # Schema parsing failed
