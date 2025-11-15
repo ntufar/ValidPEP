@@ -1,0 +1,16 @@
+# Python dependencies for PEPPOL validation backend
+
+# XML/XSD validation
+xmlschema>=3.3.0  # Pure Python XSD 1.0/1.1 validator with external import support
+lxml>=5.0.0  # Fast XML processing with built-in ISO Schematron support
+
+# HTTP requests
+requests>=2.31.0  # For fetching remote artifacts
+
+# Vercel KV (Redis cache)
+# Note: vercel-kv package may need to be installed via Vercel CLI or environment
+# For now, we'll use a fallback in-memory cache
+
+# Optional: Type checking
+typing-extensions>=4.8.0
+

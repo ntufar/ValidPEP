@@ -29,6 +29,7 @@ interface ValidationArtifacts {
   xsdBaseUrl?: string;
   xsdError?: string;
   schematron: string;
+  xsdLocalPath?: string; // Local file system path if XSD was loaded from disk
 }
 
 async function loadSchematronFromDisk(filename: string): Promise<string> {
@@ -74,11 +75,16 @@ export async function getPeppolValidationArtifacts(format: InvoiceFormat, countr
   let xsdError: string | undefined;
   let schematronRules: string;
 
+  let xsdLocalPath: string | undefined;
+
   if (format === InvoiceFormat.UBL) {
     schematronRules = await loadSchematronFromDisk('PEPPOL-EN16931-UBL.sch');
     xsdSchema = await loadLocalArtifactIfExists('UBL-Invoice-2.1.xsd');
     if (xsdSchema) {
       xsdBaseUrl = UBL_XSD_BASE_URL;
+      // Set local path for resolving relative imports
+      // XSD is at backend/docs/UBL-Invoice-2.1.xsd, imports use ../common/, so resolve from docs directory
+      xsdLocalPath = DOCS_ROOT;
     } else {
       try {
         xsdSchema = await fetchRemoteArtifact(UBL_XSD_URL);
@@ -92,6 +98,9 @@ export async function getPeppolValidationArtifacts(format: InvoiceFormat, countr
     xsdSchema = await loadLocalArtifactIfExists('CrossIndustryInvoice_100pD16B.xsd');
     if (xsdSchema) {
       xsdBaseUrl = CII_XSD_BASE_URL;
+      // Set local path for resolving relative imports
+      // XSD is at backend/docs/CrossIndustryInvoice_100pD16B.xsd, imports use ../common/, so resolve from docs directory
+      xsdLocalPath = DOCS_ROOT;
     } else {
       try {
         xsdSchema = await fetchRemoteArtifact(CII_XSD_URL);
@@ -109,6 +118,7 @@ export async function getPeppolValidationArtifacts(format: InvoiceFormat, countr
     xsdBaseUrl,
     xsdError,
     schematron: schematronRules,
+    xsdLocalPath,
   };
 
   await kv.set(cacheKey, artifacts, { ttlSeconds: DEFAULT_TTL_SECONDS });

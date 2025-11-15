@@ -19,6 +19,7 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-dropzone": "^14.3.8",
+    "saxon-js": "^2.6.0",
     "xpath": "^0.0.33",
     "xml-helper-ts": "^1.0.7"
   },

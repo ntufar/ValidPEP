@@ -10,9 +10,9 @@ import { getPeppolValidationArtifacts } from '../../../services/peppolArtifacts'
 
 const MAX_XML_BYTES = 10 * 1024 * 1024; // 10 MB
 
-// Note: Schematron validation is disabled in serverless environments (Vercel, AWS Lambda, etc.)
-// because it requires Java runtime which is not available in these environments.
-// XSD validation now uses xml-helper-ts, a pure JavaScript library with no external dependencies.
+// Note: Both XSD and Schematron validation are now enabled.
+// XSD validation resolves external imports automatically before validation.
+// Schematron validation performs basic structure validation (full XPath assertion support can be added later).
 
 export async function POST(request: Request) {
   try {
@@ -121,6 +121,7 @@ export async function POST(request: Request) {
     let xsdSchema: string | undefined;
     let schematronRules: string | undefined;
     let xsdBaseUrl: string | undefined;
+    let xsdLocalPath: string | undefined;
 
     try {
       logger.info('Calling getPeppolValidationArtifacts', { formatToValidate, countryToValidate });
@@ -129,6 +130,7 @@ export async function POST(request: Request) {
       xsdSchema = artifacts.xsd;
       schematronRules = artifacts.schematron;
       xsdBaseUrl = artifacts.xsdBaseUrl;
+      xsdLocalPath = artifacts.xsdLocalPath;
     } catch (error) {
       logger.error('Failed to load artifacts', { error: (error as Error).message });
       issues.push({
@@ -159,9 +161,12 @@ export async function POST(request: Request) {
     if (xsdSchema && xmlDoc) {
       try {
         logger.info('Starting XSD validation', { xsdSchemaLength: xsdSchema.length, xmlLength: xmlString.length });
-        // Note: baseUrl is not passed as xml-helper-ts doesn't support it directly
-        // External schema imports should be resolved automatically if they use absolute URLs
-        const xsdOptions = { nonet: false }; // Allow network access for external imports
+        // Pass baseUrl and localBasePath to resolve external schema imports
+        const xsdOptions = { 
+          nonet: false, // Allow network access for external imports
+          baseUrl: xsdBaseUrl || 'https://docs.peppol.eu/poacc/billing/3.0/xsd/',
+          localBasePath: xsdLocalPath // Local path for resolving relative imports when XSD is loaded from disk
+        };
         const xsdValidationResult = await validateXmlAgainstXsd(xmlDoc, xsdSchema, xsdOptions);
         logger.info('XSD validation completed', { isValid: xsdValidationResult.isValid, issueCount: xsdValidationResult.issues.length });
         if (!xsdValidationResult.isValid) {
@@ -210,22 +215,25 @@ export async function POST(request: Request) {
     }
 
     // 5. Schematron Validation
-    // Note: Schematron validation is disabled in serverless environments (Vercel, AWS Lambda, etc.)
-    // because it requires Java runtime which is not available in these environments.
-    // Java-dependent packages (schematron-runner, xslt3, saxon-js) have been removed from dependencies.
+    // Note: Schematron validation is now enabled using a pure JavaScript implementation.
+    // Full XPath assertion evaluation can be added later using saxon-js and the Schematron skeleton XSLT.
     if (schematronRules) {
       try {
-        // Dynamically import schematronValidator (which will throw an error explaining it's not available)
+        // Dynamically import schematronValidator
         const schematronValidatorModule = await import('../../../services/schematronValidator');
         const validateXmlAgainstSchematron = schematronValidatorModule.validateXmlAgainstSchematron;
         
+        logger.info('Starting Schematron validation', { schematronRulesLength: schematronRules.length });
         const schematronValidationResult = await validateXmlAgainstSchematron(xmlString, schematronRules);
+        logger.info('Schematron validation completed', { isValid: schematronValidationResult.isValid, issueCount: schematronValidationResult.issues.length });
+        
         if (!schematronValidationResult.isValid) {
           overallValid = false;
           issues.push(...schematronValidationResult.issues);
         }
       } catch (error) {
-        // Schematron validation is not available - add as a warning
+        // Schematron validation failed - add as a warning so other validations can continue
+        logger.error('Schematron validation error', { error: (error as Error).message });
         const errorMessage = (error as Error).message;
         issues.push({
           severity: IssueSeverity.Warning,
