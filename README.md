@@ -15,11 +15,13 @@ ValidPEP is a modern web-based PEPPOL BIS Billing validation dashboard that addr
 
 ### Validation Engine
 *   Validation against **PEPPOL BIS Billing 3.0.19 specification**.
-*   **XSD schema validation** and **Schematron business rules** execution.
+*   **XSD schema validation** with full external import support and timeout protection.
+*   **Schematron business rules** execution with ISO Schematron support.
 *   **Country-specific rule validation** (NO, SE, DK, NL, DE).
 *   Code list compliance checks (ISO codes, VAT categories).
 *   Detection of encoding issues and calculation correctness.
 *   Use of **cached external validation artifacts**.
+*   **Reliable schema resolution** with OASIS URL fallback for maximum uptime.
 
 ### Error Reporting
 *   Categorized errors (Error, Warning, Info) with **line numbers and XML paths**.
@@ -47,30 +49,36 @@ ValidPEP is a modern web-based PEPPOL BIS Billing validation dashboard that addr
 ## Technology Stack
 
 *   **Frontend:** React 18+ with TypeScript, styled with Tailwind CSS, and built with Vite.
-*   **Backend:** Vercel Serverless Functions (Node.js 20+), Next.js API Routes.
-*   **Data & Cache:** Vercel KV (Redis) for caching validation rules and code lists.
+*   **Backend:** Vercel Serverless Functions (Python 3.9+), using `xmlschema` and `lxml` for robust XSD and Schematron validation.
+*   **Data & Cache:** Vercel KV (Redis) for caching validation rules and code lists, with in-memory fallback.
 
 ## Architecture
 
 The application follows a modern web application architecture with a clear separation between the frontend and backend.
 
 *   **Frontend:** A React-based single-page application (SPA) built with Vite, providing a rich and interactive user interface.
-*   **Backend:** Leverages Vercel Serverless Functions and Next.js API Routes for scalable and efficient validation processing.
+*   **Backend:** Python-based serverless functions leveraging `xmlschema` and `lxml` libraries for comprehensive XSD and Schematron validation. The backend properly handles external schema imports with timeout protection and OASIS URL fallback for reliability.
 *   **Data Flow:** User-uploaded XML files are sent to the backend for validation. Validation results, including detailed error messages, are returned to the frontend for display.
-*   **Caching:** Vercel KV (Redis) is used to cache frequently accessed PEPPOL validation artifacts and code lists, ensuring fast validation times and resilience against external service outages.
+*   **Caching:** Vercel KV (Redis) is used to cache frequently accessed PEPPOL validation artifacts and code lists, ensuring fast validation times and resilience against external service outages. In-memory fallback is used when Vercel KV is unavailable.
 *   **Privacy-First:** No permanent storage of invoice data; all processing is ephemeral, and files are deleted immediately after validation.
 
 ## Getting Started
 
 ### Prerequisites
-*   Node.js 20+
-*   npm or yarn
+*   **Frontend:** Node.js 20+, npm or yarn
+*   **Backend:** Python 3.9+, pip
 
 ### Installation
 ```bash
 git clone [repository-url] # Replace with the actual repository URL
 cd ValidPEP
+
+# Frontend dependencies
 npm install # or yarn install
+
+# Backend dependencies
+cd backend
+pip install -r requirements.txt
 ```
 
 ### Running Locally
@@ -79,8 +87,12 @@ npm install # or yarn install
 cd frontend
 npm run dev # or yarn dev
 
-# Backend (Vercel development server)
+# Backend (Python)
 cd backend
+# Test the Python backend directly
+python test_python_backend.py
+
+# Or use Vercel development server
 vercel dev
 ```
 
