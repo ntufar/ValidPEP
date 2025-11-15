@@ -20,7 +20,7 @@
     "react-dom": "19.2.0",
     "react-dropzone": "^14.3.8",
     "xpath": "^0.0.33",
-    "xsd-schema-validator": "^0.6.0"
+    "xml-helper-ts": "^1.0.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

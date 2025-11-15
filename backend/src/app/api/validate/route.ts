@@ -10,8 +10,9 @@ import { getPeppolValidationArtifacts } from '../../../services/peppolArtifacts'
 
 const MAX_XML_BYTES = 10 * 1024 * 1024; // 10 MB
 
-// Note: Java-dependent packages (schematron-runner, xslt3, saxon-js) have been removed
-// to avoid Java spawn errors in serverless environments. Schematron validation is disabled.
+// Note: Schematron validation is disabled in serverless environments (Vercel, AWS Lambda, etc.)
+// because it requires Java runtime which is not available in these environments.
+// XSD validation now uses xml-helper-ts, a pure JavaScript library with no external dependencies.
 
 export async function POST(request: Request) {
   try {
@@ -108,6 +109,7 @@ export async function POST(request: Request) {
     }
 
     // 3. Get Validation Artifacts (XSD and Schematron)
+    logger.info('Getting validation artifacts', { formatToValidate: detectedFormat, countryToValidate: detectedCountry || preferredCountry || 'NO' });
     const formatToValidate = preferredFormat && preferredFormat !== InvoiceFormat.Auto ? preferredFormat : detectedFormat;
     const countryToValidate = preferredCountry && preferredCountry !== 'auto'
       ? preferredCountry.toUpperCase()
@@ -121,11 +123,14 @@ export async function POST(request: Request) {
     let xsdBaseUrl: string | undefined;
 
     try {
+      logger.info('Calling getPeppolValidationArtifacts', { formatToValidate, countryToValidate });
       artifacts = await getPeppolValidationArtifacts(formatToValidate, countryToValidate);
+      logger.info('Artifacts loaded', { hasXsd: !!artifacts.xsd, hasSchematron: !!artifacts.schematron });
       xsdSchema = artifacts.xsd;
       schematronRules = artifacts.schematron;
       xsdBaseUrl = artifacts.xsdBaseUrl;
     } catch (error) {
+      logger.error('Failed to load artifacts', { error: (error as Error).message });
       issues.push({
         severity: IssueSeverity.Error,
         message: `Failed to load validation artifacts for ${formatToValidate}/${countryToValidate}: ${(error as Error).message}`,
@@ -153,38 +158,39 @@ export async function POST(request: Request) {
     // 4. XSD Validation
     if (xsdSchema && xmlDoc) {
       try {
-        // Note: baseUrl is not passed as xsd-schema-validator doesn't support it directly
+        logger.info('Starting XSD validation', { xsdSchemaLength: xsdSchema.length, xmlLength: xmlString.length });
+        // Note: baseUrl is not passed as xml-helper-ts doesn't support it directly
         // External schema imports should be resolved automatically if they use absolute URLs
         const xsdOptions = { nonet: false }; // Allow network access for external imports
         const xsdValidationResult = await validateXmlAgainstXsd(xmlDoc, xsdSchema, xsdOptions);
+        logger.info('XSD validation completed', { isValid: xsdValidationResult.isValid, issueCount: xsdValidationResult.issues.length });
         if (!xsdValidationResult.isValid) {
           overallValid = false;
           issues.push(...xsdValidationResult.issues);
         }
       } catch (error) {
+        logger.error('XSD validation error', { error: (error as Error).message });
         const errorMessage = (error as Error).message;
-        // If XSD validation fails due to Java unavailability, schema parsing issues (e.g., external imports),
+        // If XSD validation fails due to schema parsing issues (e.g., external imports),
         // or other non-critical issues, add it as a warning rather than an error,
         // so validation can continue with other checks
         if (
-          errorMessage.includes('javac') ||
-          errorMessage.includes('java') ||
-          errorMessage.includes('JDK') ||
-          errorMessage.includes('JAVA_HOME') ||
-          errorMessage.includes('ENOENT') ||
-          errorMessage.includes('spawn') ||
-          errorMessage.includes('XSD validator unavailable') ||
-          errorMessage.includes('Java runtime is required') ||
+          errorMessage.includes('XSD validation is temporarily disabled') ||
+          errorMessage.includes('XSD validation unavailable') ||
           errorMessage.includes('external') ||
           errorMessage.includes('import') ||
           errorMessage.includes('unresolved') ||
           errorMessage.includes('incomplete') ||
           errorMessage.includes('Invalid XSD schema') ||
-          errorMessage.includes('Invalid schema')
+          errorMessage.includes('Invalid schema') ||
+          errorMessage.includes('Failed to parse XSD schema') ||
+          errorMessage.includes('cannot handle external schema imports')
         ) {
           issues.push({
             severity: IssueSeverity.Warning,
-            message: `XSD validation skipped: ${errorMessage}. Continuing with other validation checks.`,
+            message: errorMessage.includes('XSD validation is temporarily disabled') 
+              ? errorMessage // Use the full message for temporarily disabled case
+              : `XSD validation skipped: ${errorMessage}. Continuing with other validation checks.`,
           });
         } else {
           issues.push({
