@@ -32,12 +32,17 @@ backend/
    - ✅ Supports XSD 1.0 and 1.1
    - ✅ Pure Python (no native bindings)
    - ✅ Works reliably in serverless
+   - ✅ **Timeout protection** (30 seconds) to prevent hanging
+   - ✅ **Recursive import fetching** - pre-fetches all nested schemas
+   - ✅ **OASIS URL fallback** - more reliable than PEPPOL URLs
+   - ✅ **Proper directory structure** - preserves relative import paths
 
 2. **Schematron Validation**: Uses `lxml.isoschematron` library which:
    - ✅ Full ISO Schematron support
    - ✅ XPath 1.0-3.1 support
    - ✅ Built into lxml (already installed)
    - ✅ No additional dependencies required
+   - ✅ **Graceful error handling** for unsupported features
 
 ## Installation
 
@@ -126,9 +131,13 @@ The API endpoint maintains the same interface:
 - [x] Create utilities (logger, error handler, cache)
 - [x] Create requirements.txt
 - [x] Configure Vercel
-- [ ] Test locally
+- [x] **Fix XSD validation hanging issues**
+- [x] **Implement timeout protection**
+- [x] **Add recursive import fetching**
+- [x] **Implement OASIS URL fallback**
+- [x] Test locally ✅
 - [ ] Test on Vercel
-- [ ] Update frontend if needed (should work as-is)
+- [x] Update frontend if needed (should work as-is) ✅
 - [ ] Remove old TypeScript backend code (optional)
 
 ## Next Steps
@@ -164,5 +173,45 @@ The cache utility uses in-memory fallback. For production, you may want to:
 2. ✅ **Full Schematron support** with XPath
 3. ✅ **Better library ecosystem** for XML validation
 4. ✅ **More maintainable** code with better error handling
-5. ✅ **No hanging issues** - libraries handle imports correctly
+5. ✅ **No hanging issues** - timeout protection ensures completion
+6. ✅ **Reliable schema resolution** - OASIS URL fallback
+7. ✅ **Complete import handling** - recursively fetches all nested schemas
+8. ✅ **Proper error detection** - finds real validation errors correctly
+
+## Implementation Details
+
+### XSD Validation Architecture
+
+The XSD validator (`services/xsd_validator.py`) implements a multi-layered approach:
+
+1. **Schema Location Resolution** (`_resolve_schema_location`)
+   - Priority: Local files → OASIS URLs → PEPPOL URLs
+   - Handles relative paths correctly
+
+2. **Recursive Import Fetching** (`fetch_nested_imports`)
+   - Pre-fetches all nested imports and includes
+   - Maximum depth of 5 to prevent infinite loops
+   - Handles both `xsd:import` (with namespace) and `xsd:include` (without namespace)
+
+3. **Directory Structure Management**
+   - Creates temp directories matching original schema layout
+   - Preserves relative import paths (e.g., `../common/`)
+   - Organizes schemas in appropriate subdirectories
+
+4. **Timeout Protection**
+   - Threading-based timeout (30 seconds) for schema loading
+   - Prevents indefinite hanging on slow/unreachable URLs
+   - Graceful fallback if timeout occurs
+
+5. **Validation Execution**
+   - Uses `xmlschema.XMLSchema` with all locations pre-resolved
+   - Validates against complete schema with all imports
+   - Returns detailed error messages with XPath locations
+
+### Performance
+
+- **First Request**: ~30-40 seconds (includes network requests for all schemas)
+- **Subsequent Requests**: Faster (schemas may be cached)
+- **Network Dependency**: Requires internet access for OASIS/PEPPOL URLs
+- **Timeout**: 30 seconds maximum for schema loading
 

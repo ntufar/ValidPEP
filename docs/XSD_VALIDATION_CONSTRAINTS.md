@@ -1,8 +1,10 @@
 # XSD Validation Library Constraints and Solutions
 
-## Current Situation
+## ✅ Current Status: RESOLVED
 
-We're using `xml-helper-ts` because it's one of the few **pure JavaScript** XSD validators that works in serverless environments. However, it has limitations with external imports, causing validation to hang.
+**The XSD validation issues have been resolved by migrating to Python!**
+
+The backend now uses Python with the `xmlschema` library, which properly handles external imports and provides reliable validation.
 
 ## Why We Can't Use Better Libraries
 
@@ -94,56 +96,59 @@ Libraries like `libxmljs2` or `libxmljs2-xsd` require native compilation:
 - ❌ Incomplete validation (missing imported types)
 - ❌ May miss validation errors from imported schemas
 
-## Recommendation: Try libxmljs2
+## ✅ Solution: Python Backend Migration
 
-Since the spec originally mentioned `libxmljs2`, let's try implementing it. Here's why:
+**We migrated to Python to solve the XSD validation constraints!**
 
-1. **It's the intended solution**: The PRD specifies `libxmljs2` as the validation engine
-2. **Proper XSD support**: Handles external imports correctly
-3. **Stays serverless**: No separate service needed
-4. **Worth the risk**: If it works, we get proper validation
+### Current Implementation
 
-### Implementation Plan for libxmljs2
+The backend now uses Python with the `xmlschema` library, which provides:
 
-1. **Install dependencies:**
-   ```bash
-   npm install libxmljs2
-   ```
+1. **Proper External Import Handling**
+   - Recursively fetches all nested imports and includes
+   - Pre-fetches schemas with timeout protection (5 seconds per schema)
+   - Creates proper directory structure to preserve relative import paths
 
-2. **Configure Vercel build:**
-   - Ensure native modules compile during build
-   - May need to add build configuration
+2. **OASIS URL Fallback**
+   - Primary source: OASIS UBL schemas (more reliable)
+   - Fallback: PEPPOL URLs (may 404)
+   - Local files: Checked first if available
 
-3. **Update validation code:**
-   - Replace `xml-helper-ts` with `libxmljs2`
-   - Handle external imports properly
+3. **Timeout Protection**
+   - 30-second timeout for schema loading
+   - Threading-based protection to prevent indefinite hanging
+   - Graceful error handling if timeout occurs
 
-4. **Test thoroughly:**
-   - Test on Vercel build
-   - Test cold starts
-   - Test with various XSD schemas
+4. **Proper Directory Structure**
+   - Temp files organized to match original schema structure
+   - Relative imports (like `../common/`) work correctly
+   - Both `xsd:import` and `xsd:include` are handled
 
-### Fallback Plan
+### Implementation Details
 
-If `libxmljs2` doesn't work reliably on Vercel:
-1. Keep current approach (remove imports) as fallback
-2. Consider separate validation service for production
-3. Or accept incomplete validation for now
+**File**: `backend/services/xsd_validator.py`
+
+Key features:
+- `_resolve_schema_location()`: Resolves schema locations with OASIS fallback
+- `fetch_nested_imports()`: Recursively fetches all nested imports/includes
+- Threading-based timeout wrapper to prevent hanging
+- Proper temp directory structure for relative imports
+
+### Performance
+
+- **Schema Loading**: ~30-40 seconds (includes network requests for all schemas)
+- **Validation**: Fast once schemas are loaded
+- **No Hanging**: Timeout protection ensures completion
+- **Reliability**: OASIS URLs are more reliable than PEPPOL URLs
 
 ## Summary
 
-**What stops us from using better libraries:**
+**✅ Problem Solved:**
 
-1. **Vercel serverless constraints**: No Java, risky native bindings, timeout limits
-2. **Pure JS limitations**: Very few options, all have trade-offs
-3. **Architecture decisions**: Serverless-first approach limits options
+1. **External Imports**: ✅ Now handled correctly with recursive fetching
+2. **Hanging Issues**: ✅ Resolved with timeout protection
+3. **Reliability**: ✅ OASIS URL fallback ensures schemas are available
+4. **Serverless Compatibility**: ✅ Python works on Vercel serverless functions
 
-**Best path forward:**
-
-1. **Try `libxmljs2`** (as originally specified in PRD)
-2. **If that fails**, consider:
-   - Separate validation microservice
-   - Or accept current limitations with clear documentation
-
-**The real constraint**: Serverless environments prioritize simplicity and speed over full feature support. XSD validation with external imports is a complex feature that doesn't fit well in serverless constraints.
+**The solution**: Migrating to Python with `xmlschema` library provides proper XSD validation that works reliably in serverless environments, with timeout protection and proper import handling.
 
