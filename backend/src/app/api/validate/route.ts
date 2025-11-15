@@ -10,33 +10,8 @@ import { getPeppolValidationArtifacts } from '../../../services/peppolArtifacts'
 
 const MAX_XML_BYTES = 10 * 1024 * 1024; // 10 MB
 
-// Handle uncaught exceptions from Java-related spawns during module initialization
-// This catches errors that occur when schematron-runner or its dependencies try to spawn Java
-// Note: This handler prevents the app from crashing, but the error may still be logged by Next.js/Turbopack
-if (typeof process !== 'undefined' && process.listeners) {
-  // Use 'uncaughtException' instead of 'once' to handle multiple errors
-  const existingHandler = process.listeners('uncaughtException').length;
-  if (existingHandler === 0) {
-    process.on('uncaughtException', (error: Error & { code?: string; syscall?: string }) => {
-      // Only handle Java-related spawn errors silently
-      if (
-        error.code === 'ENOENT' &&
-        (error.syscall === 'spawn javac' || error.message?.includes('spawn javac'))
-      ) {
-        // Log as debug/warn but don't crash - this will be handled gracefully when Schematron validation is attempted
-        logger.warn('Java runtime not available - Schematron validation will be skipped', {
-          code: error.code,
-          syscall: error.syscall,
-          message: error.message,
-        });
-        // Don't rethrow - we'll handle this gracefully when validation is attempted
-        return;
-      }
-      // Re-throw other uncaught exceptions to let Next.js handle them
-      throw error;
-    });
-  }
-}
+// Note: Java-dependent packages (schematron-runner, xslt3, saxon-js) have been removed
+// to avoid Java spawn errors in serverless environments. Schematron validation is disabled.
 
 export async function POST(request: Request) {
   try {
@@ -215,69 +190,27 @@ export async function POST(request: Request) {
     }
 
     // 5. Schematron Validation
+    // Note: Schematron validation is disabled in serverless environments (Vercel, AWS Lambda, etc.)
+    // because it requires Java runtime which is not available in these environments.
+    // Java-dependent packages (schematron-runner, xslt3, saxon-js) have been removed from dependencies.
     if (schematronRules) {
       try {
-        // Check if Java is available before attempting to import schematronValidator
-        // This prevents the module from trying to spawn Java during initialization
-        const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUTION_ENV);
-        const javaAvailable = process.env.JAVA_AVAILABLE === 'true';
+        // Dynamically import schematronValidator (which will throw an error explaining it's not available)
+        const schematronValidatorModule = await import('../../../services/schematronValidator');
+        const validateXmlAgainstSchematron = schematronValidatorModule.validateXmlAgainstSchematron;
         
-        if (isServerless && !javaAvailable) {
-          // Skip Schematron validation in serverless environments without Java
-          issues.push({
-            severity: IssueSeverity.Warning,
-            message: 'Schematron validation skipped: Java runtime is not available in this serverless environment. ' +
-                     'XSD validation has been completed successfully. ' +
-                     'To enable Schematron validation, set JAVA_AVAILABLE=true and ensure Java is installed.',
-          });
-        } else {
-          // Dynamically import schematronValidator only if Java might be available
-          const schematronValidatorModule = await import('../../../services/schematronValidator');
-          const validateXmlAgainstSchematron = schematronValidatorModule.validateXmlAgainstSchematron;
-          
-          const schematronValidationResult = await validateXmlAgainstSchematron(xmlString, schematronRules);
-          if (!schematronValidationResult.isValid) {
-            overallValid = false;
-            issues.push(...schematronValidationResult.issues);
-          }
+        const schematronValidationResult = await validateXmlAgainstSchematron(xmlString, schematronRules);
+        if (!schematronValidationResult.isValid) {
+          overallValid = false;
+          issues.push(...schematronValidationResult.issues);
         }
       } catch (error) {
+        // Schematron validation is not available - add as a warning
         const errorMessage = (error as Error).message;
-        const errorCode = (error as any)?.code;
-        const errorSyscall = (error as any)?.syscall;
-        
-        // If Schematron validation fails due to Java not being available (serverless environments),
-        // add it as a warning rather than an error, so we can still return XSD validation results
-        if (
-          errorCode === 'ENOENT' ||
-          errorSyscall === 'spawn javac' ||
-          errorMessage.includes('spawn javac') ||
-          errorMessage.includes('javac') ||
-          errorMessage.includes('Java runtime not available') ||
-          errorMessage.includes('Java') ||
-          errorMessage.includes('serverless environments')
-        ) {
-          issues.push({
-            severity: IssueSeverity.Warning,
-            message: `Schematron validation skipped: ${errorMessage}`,
-          });
-        }
-        // If Schematron validation fails due to XPath parsing issues,
-        // add it as a warning rather than an error, so we can still return results
-        else if (errorMessage.includes('XPath') || errorMessage.includes('xpath') || 
-            errorMessage.includes('parse error') || errorMessage.includes('XPath 2.0')) {
-          issues.push({
-            severity: IssueSeverity.Warning,
-            message: `Schematron validation skipped: ${errorMessage}. ` +
-                     `Some XPath 2.0 expressions in the Schematron rules may not be fully supported.`,
-          });
-        } else {
-          issues.push({
-            severity: IssueSeverity.Error,
-            message: `Schematron validation failed: ${errorMessage}`,
-          });
-          overallValid = false;
-        }
+        issues.push({
+          severity: IssueSeverity.Warning,
+          message: `Schematron validation skipped: ${errorMessage}`,
+        });
       }
     } else {
       issues.push({
